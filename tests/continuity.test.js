@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createPlayer} from '../dist/state/player.js';
-import {materialize} from '../dist/engine/event.js';
+import {materialize,continuityScore} from '../dist/engine/event.js';
+import {applyEffects} from '../dist/engine/effect.js';
 import {eventById} from '../dist/data/events.js';
 
 const sameSeedName=name=>createPlayer({seed:'姓名连续性',city:'zhengzhou',name});
@@ -12,6 +13,8 @@ const employable=()=>{
   Object.keys(s.hobbies).forEach(k=>s.hobbies[k]=80);
   return s;
 };
+const historyRow=(eventId,age,category='职业',title=eventId)=>({age,year:2000+age,city:'hangzhou',eventId,category,title,text:title,choice:null,background:[],effects:[],key:false});
+const followUpEvent=()=>({id:'synthetic_follow_up',title:'后续事件',text:'后来又发生了一件事。',category:'家庭',conditions:[],effects:[],options:[{text:'继续',effects:[]},{text:'停下',effects:[]}],followUpOf:['romance'],followUpMultiplier:3,echoText:'从{years}年前的“{title}”走到今天，'});
 
 test('自定义中文姓名让父亲跟随玩家姓氏，母亲保持独立随机姓氏',()=>{
   const wang=sameSeedName('王小明');
@@ -51,4 +54,37 @@ test('上一份职业的相邻转型进入再次求职前列但仍保留其他�
   const names=e.options.slice(0,4).map(o=>o.text);
   assert.ok(names.some(n=>['产品经理','游戏策划'].includes(n)));
   assert.ok(new Set(names).size>1);
+});
+
+test('相关历史会提高连续性评分',()=>{
+  const event={historyLinks:[{eventIds:['graduate'],within:3,add:50}]};
+  const plain=employable();
+  const linked=employable();linked.history.push(historyRow('graduate',25,'教育','毕业'));
+  assert.equal(continuityScore(event,plain),0);
+  assert.ok(continuityScore(event,linked)>=40);
+});
+
+test('缺少强前置经历时 followUpOf 事件不可物化',()=>{
+  const s=employable();
+  assert.equal(materialize(followUpEvent(),s),null);
+  s.history.push(historyRow('romance',25,'家庭','有人走近你的生活'));
+  const e=materialize(followUpEvent(),s);
+  assert.ok(e);
+  assert.match(e.text,/1年前/);
+  assert.ok(e.options.every(o=>o.effects.some(x=>x.type==='echo'&&x.key==='romance:25')));
+});
+
+test('强回声使用三次后不再附加强回声消费',()=>{
+  const s=employable();
+  s.history.push(historyRow('romance',25,'家庭','有人走近你的生活'));
+  s.echoUsage={'romance:25':3};
+  const e=materialize(followUpEvent(),s);
+  assert.ok(e);
+  assert.ok(e.options.every(o=>!o.effects.some(x=>x.type==='echo')));
+});
+
+test('echo 效果递增对应历史回声次数',()=>{
+  let s=employable();
+  s=applyEffects(s,[{type:'echo',key:'romance:25'}],'测试回声');
+  assert.equal(s.echoUsage['romance:25'],1);
 });
