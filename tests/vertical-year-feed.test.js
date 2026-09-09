@@ -21,3 +21,7 @@ test('关键选择和死亡状态会停止自动推进',()=>{
   assert.match(app,/s\.pending\s*\|\|\s*s\.dead/);
   assert.match(app,/cancelAutoAdvance/);
 });
+
+test('存档失败或存在错误时不会继续自动推进',()=>{
+  assert.match(app,/function scheduleAutoAdvance[\s\S]*?error\|\|!saved/);
+});
