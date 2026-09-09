@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/life-continuity
+      - feature/life-continuity-optimizations
 
 jobs:
   test:
