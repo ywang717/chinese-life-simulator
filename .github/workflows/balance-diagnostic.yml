@@ -1,0 +1,27 @@
+name: Balance Failure Diagnostic
+
+on:
+  push:
+    branches:
+      - feature/life-continuity-optimizations
+    paths:
+      - '.github/workflows/balance-diagnostic.yml'
+      - 'scripts/diagnose-balance-choice.mjs'
+
+jobs:
+  diagnose:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [2,11,17]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reproduce failing shard
+        env:
+          SHARD: ${{ matrix.shard }}
+          COUNT: '50'
+        run: node scripts/diagnose-balance-choice.mjs
