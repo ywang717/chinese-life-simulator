@@ -8,6 +8,8 @@ on:
       - '.github/workflows/balance-1000.yml'
       - 'scripts/balance-*.mjs'
       - 'tests/balance-analysis.test.js'
+      - 'dist/engine/event.js'
+      - 'tests/startup-eligibility.test.js'
 
 jobs:
   shard:
