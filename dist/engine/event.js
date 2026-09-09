@@ -26,6 +26,7 @@ const career=id=>({type:'career',id});
 const migrate=(city,reason,family=false)=>({type:'migrate',city,reason,family});
 const school=(level,text,major)=>({type:'education',level,text,major});
 const note=text=>({type:'note',text});
+const canStart=s=>eligible(s,careerById('founder'));
 const scoredJobs=s=>{const previous=careerById(s.careerHistory.at(-1)?.career);return availableCareers(s).filter(c=>c.id!=='founder').map(c=>{const continuity=c.id===previous?.id?18:previous?.transitions.includes(c.id)?28:0;return {c,score:(cityById(s.city).careerWeights[c.id]??1)*20+s.hobbies[c.hobby]*.5+s.hidden[c.ability]*.2+(s.parents.some(p=>p.career===c.id)?15:0)+(s.npcs.some(n=>n.career===c.id)?10:0)-(s.tags.includes('职业争议')?10:0)+continuity};}).sort((a,b)=>b.score-a.score);};
 const directions=[['软件','programmer'],['金融','finance'],['法律','lawyer'],['医学','doctor'],['教育','teacher'],['警务','police']];
 function transitions(s){const c=careerById(s.career);const related=c?.transitions??[];return availableCareers(s).filter(x=>x.id!==s.career&&x.id!=='founder'&&(related.includes(x.id)||s.hobbies[x.hobby]>=70)).sort((a,b)=>Number(related.includes(b.id))-Number(related.includes(a.id))).slice(0,3);}
@@ -57,7 +58,7 @@ export function materialize(rawEvent,s){const e=configuredEvent(rawEvent),follow
  case 'sportExit':{const target=s.career==='esports'?'game':'sales';out.options=[opt('退役，转向'+careerById(target).name,[school(Math.max(4,s.education),'完成退役职业培训'),career(target),{type:'tag',key:'竞技退役'}]),opt('再坚持一个赛季',[stat('health',-8),{type:'schedule',eventId:'sport_retirement',after:1}])];break;}
  case 'retirement':{out.options=[opt('留在'+C.name,[{type:'retire'}]),opt('回到家乡',[{type:'retire'},migrate('home','退休回乡',true)]),opt('迁居成都',[{type:'retire'},migrate('chengdu','退休迁居',true)])];break;}
  }
- if(out.options)out.options=out.options.filter(o=>matches(s,o.conditions));const source=echoSource(out,s,follow);if(out.echoText&&source)out.text=echoText(out.echoText,source,s)+out.text;const strong=followUpStrength(e,s,follow);if(follow&&strong>1){const effect={type:'echo',key:follow.key};if(out.options)out.options=out.options.map(o=>({...o,effects:[...(o.effects??[]),effect]}));else out.effects=[...(out.effects??[]),effect];}return out;
+ if(out.options)out.options=out.options.filter(o=>matches(s,o.conditions)&&(!(o.effects??[]).some(e=>e.type==='startup')||canStart(s)));const source=echoSource(out,s,follow);if(out.echoText&&source)out.text=echoText(out.echoText,source,s)+out.text;const strong=followUpStrength(e,s,follow);if(follow&&strong>1){const effect={type:'echo',key:follow.key};if(out.options)out.options=out.options.map(o=>({...o,effects:[...(o.effects??[]),effect]}));else out.effects=[...(out.effects??[]),effect];}return out;
 }
 export function candidates(s,{includeScheduled=false}={}){
  return events.filter(raw=>(includeScheduled||!raw.scheduledOnly)&&(!raw.city||raw.city===s.city)&&matches(s,raw.conditions)&&!s.history.some(h=>h.eventId===raw.id&&s.age-h.age<raw.cooldown)).map(raw=>{const e=configuredEvent(raw);
