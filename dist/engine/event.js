@@ -1,9 +1,11 @@
 import {events,eventById} from '../data/events.js';
+import {continuityByEventId} from '../data/continuity.js';
 import {cities,cityById} from '../data/cities.js';
 import {careers,careerById,availableCareers,eligible} from '../data/careers.js';
 import {aspirations,clubs} from '../data/catalog.js';
 import {at} from './effect.js';
 import {probability} from './probability.js';
+for(const e of events)Object.assign(e,continuityByEventId[e.id]??{});
 export function matches(s,conditions=[]){return conditions.every(([path,op,value])=>{const v=at(s,path);switch(op){case '==':return v===value;case '!=':return v!==value;case '>':return v>value;case '>=':return v>=value;case '<':return v<value;case '<=':return v<=value;case 'in':return value.includes(v);case 'includes':return v?.includes(value);case 'notIncludes':return !v?.includes(value);case 'truthy':return !!v;case 'falsy':return !v;default:return false;}});}
 const historyMatches=(row,link)=>(!link.eventIds||link.eventIds.includes(row.eventId))&&(!link.category||link.category===row.category);
 const stateRuleMatches=(s,rule)=>{const v=at(s,rule.path);if(rule.equals!==undefined)return v===rule.equals;if(rule.includes!==undefined)return v?.includes?.(rule.includes)??false;if(rule.min!==undefined)return Number(v)>=rule.min;if(rule.truthy!==undefined)return rule.truthy?!!v:!v;return false;};
