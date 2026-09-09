@@ -13,6 +13,7 @@ export function applyEffects(state,effects,source='年度变化'){
    case 'set':put(s,e.path,structuredClone(e.value));break;
    case 'add':put(s,e.path,(at(s,e.path)??0)+e.value);break;
    case 'append':at(s,e.path).push(structuredClone(e.value));break;
+   case 'echo':{s.echoUsage??={};s.echoUsage[e.key]=(s.echoUsage[e.key]??0)+1;break;}
    case 'stat':s.stats[e.key]+=e.value;break;
    case 'hidden':s.hidden[e.key]+=e.value;break;
    case 'hobby':s.hobbies[e.key]+=e.value;break;
