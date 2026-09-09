@@ -4,6 +4,7 @@ import {createPlayer} from '../dist/state/player.js';
 import {materialize,continuityScore,candidates} from '../dist/engine/event.js';
 import {applyEffects} from '../dist/engine/effect.js';
 import {eventById} from '../dist/data/events.js';
+import {validateSave} from '../dist/state/storage.js';
 
 let continuityByEventId={};
 try{({continuityByEventId}=await import('../dist/data/continuity.js'));}catch{}
@@ -19,6 +20,7 @@ const employable=()=>{
 const historyRow=(eventId,age,category='职业',title=eventId)=>({age,year:2000+age,city:'hangzhou',eventId,category,title,text:title,choice:null,background:[],effects:[],key:false});
 const followUpEvent=()=>({id:'synthetic_follow_up',title:'后续事件',text:'后来又发生了一件事。',category:'家庭',conditions:[],effects:[],options:[{text:'继续',effects:[]},{text:'停下',effects:[]}],followUpOf:['romance'],followUpMultiplier:3,echoText:'从{years}年前的“{title}”走到今天，'});
 const romanceReady=()=>{const s=employable();s.relationshipStatus='恋爱';s.partner={id:'p',name:'林安宁',age:26,city:s.city,career:'teacher',income:60000,personality:'温和',relationship:70};return s;};
+const marriageWeight=(years,used=0)=>{const s=romanceReady();s.age=40;s.history.push(historyRow('romance',40-years,'家庭','有人走近你的生活'));s.echoUsage={[`romance:${40-years}`]:used};return candidates(s).find(x=>x.event.id==='marriage')?.weight;};
 
 test('自定义中文姓名让父亲跟随玩家姓氏，母亲保持独立随机姓氏',()=>{
   const wang=sameSeedName('王小明');
@@ -37,6 +39,15 @@ test('无法识别中文姓氏时父亲回退随机姓氏且人物仍可创建',
 test('新人物初始化轻量回声计数',()=>{
   const s=sameSeedName('王小明');
   assert.deepEqual(s.echoUsage,{});
+});
+
+test('旧版存档缺少 echoUsage 仍可读取并在首次回声时初始化',()=>{
+  const old=sameSeedName('王小明');
+  delete old.echoUsage;
+  const save={version:1,current:old,checkpoint:null,past:[],unlocked:[]};
+  assert.equal(validateSave(save).current.name,'王小明');
+  const next=applyEffects(old,[{type:'echo',key:'romance:25'}],'兼容旧存档');
+  assert.equal(next.echoUsage['romance:25'],1);
 });
 
 test('第一次求职与再次求职使用不同语义',()=>{
@@ -93,6 +104,12 @@ test('echo 效果递增对应历史回声次数',()=>{
   assert.equal(s.echoUsage['romance:25'],1);
 });
 
+test('强后续倍率随前置经历年份衰减，十年后不再享受强倍率',()=>{
+  const near=marriageWeight(2),middle=marriageWeight(5),old=marriageWeight(9),veryOld=marriageWeight(12),spent=marriageWeight(12,3);
+  assert.ok(near>middle&&middle>old&&old>veryOld,{near,middle,old,veryOld});
+  assert.equal(veryOld,spent);
+});
+
 test('第一版二十到三十个关键事件声明人生连续性',()=>{
   const count=Object.keys(continuityByEventId).length;
   assert.ok(count>=20&&count<=30,count);
@@ -107,4 +124,33 @@ test('真实婚姻事件需要恋爱历史，且强回声耗尽后权重下降',
   const spent=structuredClone(fresh);spent.echoUsage={'romance:25':3};
   const spentWeight=candidates(spent).find(x=>x.event.id==='marriage')?.weight;
   assert.ok(spentWeight>0&&freshWeight>spentWeight,{freshWeight,spentWeight});
+});
+
+test('近期迁居提高当前城市事件连续性，长期居住不会获得迁居加分',()=>{
+  const settled=createPlayer({seed:'城市连续性',city:'hangzhou'});settled.age=30;
+  const moved=structuredClone(settled);moved.cityHistory=[{city:'zhengzhou',startAge:0,endAge:29,reason:'出生与成长'},{city:'hangzhou',startAge:29,endAge:null,reason:'工作迁居'}];
+  const event=eventById('city_hangzhou');
+  assert.equal(continuityScore(event,settled),0);
+  assert.ok(continuityScore(event,moved)>0);
+});
+
+test('连续性配置不会污染原始事件数据对象',()=>{
+  assert.equal(Object.hasOwn(eventById('job_search'),'historyLinks'),false);
+  assert.equal(Object.hasOwn(eventById('marriage'),'followUpOf'),false);
+});
+
+test('近期职业履历提高重新求职连续性，十年前职业不再加分',()=>{
+  const recent=employable();recent.age=40;recent.careerHistory=[{career:'programmer',startAge:32,endAge:38,highest:1,city:'hangzhou'}];
+  const old=employable();old.age=40;old.careerHistory=[{career:'programmer',startAge:20,endAge:25,highest:1,city:'hangzhou'}];
+  const event=eventById('job_search');
+  assert.ok(continuityScore(event,recent)>0);
+  assert.equal(continuityScore(event,old),0);
+});
+
+test('可信 NPC 的近期共同经历提高老友事件连续性，没有共同经历则不加分',()=>{
+  const linked=employable();linked.age=35;linked.npcs=[{id:'oldmate',name:'周予安',role:'同学',age:20,city:'hangzhou',career:'teacher',relationship:70,trust:70,experiences:[{age:31,text:'一起参加活动'}],alive:true}];
+  const empty=structuredClone(linked);empty.npcs[0].experiences=[];
+  const event=eventById('old_friend');
+  assert.ok(continuityScore(event,linked)>0);
+  assert.equal(continuityScore(event,empty),0);
 });
