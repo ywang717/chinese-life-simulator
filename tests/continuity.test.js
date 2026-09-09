@@ -1,9 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createPlayer} from '../dist/state/player.js';
-import {materialize,continuityScore} from '../dist/engine/event.js';
+import {materialize,continuityScore,candidates} from '../dist/engine/event.js';
 import {applyEffects} from '../dist/engine/effect.js';
 import {eventById} from '../dist/data/events.js';
+
+let continuityByEventId={};
+try{({continuityByEventId}=await import('../dist/data/continuity.js'));}catch{}
 
 const sameSeedName=name=>createPlayer({seed:'姓名连续性',city:'zhengzhou',name});
 const employable=()=>{
@@ -15,6 +18,7 @@ const employable=()=>{
 };
 const historyRow=(eventId,age,category='职业',title=eventId)=>({age,year:2000+age,city:'hangzhou',eventId,category,title,text:title,choice:null,background:[],effects:[],key:false});
 const followUpEvent=()=>({id:'synthetic_follow_up',title:'后续事件',text:'后来又发生了一件事。',category:'家庭',conditions:[],effects:[],options:[{text:'继续',effects:[]},{text:'停下',effects:[]}],followUpOf:['romance'],followUpMultiplier:3,echoText:'从{years}年前的“{title}”走到今天，'});
+const romanceReady=()=>{const s=employable();s.relationshipStatus='恋爱';s.partner={id:'p',name:'林安宁',age:26,city:s.city,career:'teacher',income:60000,personality:'温和',relationship:70};return s;};
 
 test('自定义中文姓名让父亲跟随玩家姓氏，母亲保持独立随机姓氏',()=>{
   const wang=sameSeedName('王小明');
@@ -87,4 +91,20 @@ test('echo 效果递增对应历史回声次数',()=>{
   let s=employable();
   s=applyEffects(s,[{type:'echo',key:'romance:25'}],'测试回声');
   assert.equal(s.echoUsage['romance:25'],1);
+});
+
+test('第一版二十到三十个关键事件声明人生连续性',()=>{
+  const count=Object.keys(continuityByEventId).length;
+  assert.ok(count>=20&&count<=30,count);
+});
+
+test('真实婚姻事件需要恋爱历史，且强回声耗尽后权重下降',()=>{
+  const noHistory=romanceReady();
+  assert.ok(!candidates(noHistory).some(x=>x.event.id==='marriage'));
+  const fresh=romanceReady();fresh.history.push(historyRow('romance',25,'家庭','有人走近你的生活'));
+  const freshWeight=candidates(fresh).find(x=>x.event.id==='marriage')?.weight;
+  assert.ok(freshWeight>0);
+  const spent=structuredClone(fresh);spent.echoUsage={'romance:25':3};
+  const spentWeight=candidates(spent).find(x=>x.event.id==='marriage')?.weight;
+  assert.ok(spentWeight>0&&freshWeight>spentWeight,{freshWeight,spentWeight});
 });
