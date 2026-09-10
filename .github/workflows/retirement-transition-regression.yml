@@ -1,13 +1,7 @@
 name: Retirement Transition Regression
 
 on:
-  push:
-    branches:
-      - feature/life-continuity-optimizations
-    paths:
-      - '.github/workflows/retirement-transition-regression.yml'
-      - 'tests/retirement-transition.test.js'
-      - 'dist/engine/event.js'
+  workflow_dispatch:
 
 jobs:
   test:

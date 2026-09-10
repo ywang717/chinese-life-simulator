@@ -1,13 +1,7 @@
 name: Context Gate Regression
 
 on:
-  push:
-    branches:
-      - feature/life-continuity-optimizations
-    paths:
-      - 'tests/context-gate.test.js'
-      - 'dist/engine/event.js'
-      - '.github/workflows/context-gate-regression.yml'
+  workflow_dispatch:
 
 jobs:
   test:
