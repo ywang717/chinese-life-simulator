@@ -1,0 +1,253 @@
+name: Balance 5000 to 10000
+
+on:
+  push:
+    branches:
+      - feature/life-continuity-optimizations
+    paths:
+      - '.github/workflows/balance-5000-to-10000.yml'
+
+jobs:
+  batch_5000:
+    name: 5000-5999 shard ${{ matrix.shard }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run 50 lifetimes
+        env:
+          OFFSET: '5000'
+          SHARD: ${{ matrix.shard }}
+          COUNT: '50'
+          OUT: balance-${{ matrix.shard }}.json
+        run: node scripts/balance-shard.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-5000-${{ matrix.shard }}
+          path: balance-${{ matrix.shard }}.json
+          retention-days: 14
+
+  checkpoint_6000:
+    name: Checkpoint 6000
+    needs: batch_5000
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: balance-5000-*
+          path: balance-results
+      - name: Aggregate 5000-5999
+        env:
+          OUT: balance-summary-6000.json
+        run: node scripts/balance-aggregate.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-checkpoint-6000
+          path: balance-summary-6000.json
+          retention-days: 30
+
+  batch_6000:
+    name: 6000-6999 shard ${{ matrix.shard }}
+    needs: checkpoint_6000
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run 50 lifetimes
+        env:
+          OFFSET: '6000'
+          SHARD: ${{ matrix.shard }}
+          COUNT: '50'
+          OUT: balance-${{ matrix.shard }}.json
+        run: node scripts/balance-shard.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-6000-${{ matrix.shard }}
+          path: balance-${{ matrix.shard }}.json
+          retention-days: 14
+
+  checkpoint_7000:
+    name: Checkpoint 7000
+    needs: batch_6000
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: balance-6000-*
+          path: balance-results
+      - name: Aggregate 6000-6999
+        env:
+          OUT: balance-summary-7000.json
+        run: node scripts/balance-aggregate.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-checkpoint-7000
+          path: balance-summary-7000.json
+          retention-days: 30
+
+  batch_7000:
+    name: 7000-7999 shard ${{ matrix.shard }}
+    needs: checkpoint_7000
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run 50 lifetimes
+        env:
+          OFFSET: '7000'
+          SHARD: ${{ matrix.shard }}
+          COUNT: '50'
+          OUT: balance-${{ matrix.shard }}.json
+        run: node scripts/balance-shard.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-7000-${{ matrix.shard }}
+          path: balance-${{ matrix.shard }}.json
+          retention-days: 14
+
+  checkpoint_8000:
+    name: Checkpoint 8000
+    needs: batch_7000
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: balance-7000-*
+          path: balance-results
+      - name: Aggregate 7000-7999
+        env:
+          OUT: balance-summary-8000.json
+        run: node scripts/balance-aggregate.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-checkpoint-8000
+          path: balance-summary-8000.json
+          retention-days: 30
+
+  batch_8000:
+    name: 8000-8999 shard ${{ matrix.shard }}
+    needs: checkpoint_8000
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run 50 lifetimes
+        env:
+          OFFSET: '8000'
+          SHARD: ${{ matrix.shard }}
+          COUNT: '50'
+          OUT: balance-${{ matrix.shard }}.json
+        run: node scripts/balance-shard.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-8000-${{ matrix.shard }}
+          path: balance-${{ matrix.shard }}.json
+          retention-days: 14
+
+  checkpoint_9000:
+    name: Checkpoint 9000
+    needs: batch_8000
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: balance-8000-*
+          path: balance-results
+      - name: Aggregate 8000-8999
+        env:
+          OUT: balance-summary-9000.json
+        run: node scripts/balance-aggregate.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-checkpoint-9000
+          path: balance-summary-9000.json
+          retention-days: 30
+
+  batch_9000:
+    name: 9000-9999 shard ${{ matrix.shard }}
+    needs: checkpoint_9000
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run 50 lifetimes
+        env:
+          OFFSET: '9000'
+          SHARD: ${{ matrix.shard }}
+          COUNT: '50'
+          OUT: balance-${{ matrix.shard }}.json
+        run: node scripts/balance-shard.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-9000-${{ matrix.shard }}
+          path: balance-${{ matrix.shard }}.json
+          retention-days: 14
+
+  checkpoint_10000:
+    name: Checkpoint 10000
+    needs: batch_9000
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: balance-9000-*
+          path: balance-results
+      - name: Aggregate 9000-9999
+        env:
+          OUT: balance-summary-10000.json
+        run: node scripts/balance-aggregate.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-checkpoint-10000
+          path: balance-summary-10000.json
+          retention-days: 30
