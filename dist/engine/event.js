@@ -7,6 +7,11 @@ import {at} from './effect.js';
 import {probability} from './probability.js';
 const configuredEvent=e=>({...e,...(e.category==='城市'?{cityHistoryLinks:[{within:3,add:24}]}:{}),...(continuityByEventId[e.id]??{})});
 export function matches(s,conditions=[]){return conditions.every(([path,op,value])=>{const v=at(s,path);switch(op){case '==':return v===value;case '!=':return v!==value;case '>':return v>value;case '>=':return v>=value;case '<':return v<value;case '<=':return v<=value;case 'in':return value.includes(v);case 'includes':return v?.includes(value);case 'notIncludes':return !v?.includes(value);case 'truthy':return !!v;case 'falsy':return !v;default:return false;}});}
+const careerEventOwners=new Map();
+for(const c of careers)for(const id of c.exclusiveEvents??[]){if(!careerEventOwners.has(id))careerEventOwners.set(id,new Set());careerEventOwners.get(id).add(c.id);}
+const partnerStatuses=new Set(['恋爱','已婚','再婚']);
+const needsPartner=conditions=>conditions.some(([path,op,value])=>{if(path?.startsWith?.('partner.'))return true;if(path!=='relationshipStatus')return false;const values=op==='in'&&Array.isArray(value)?value:[value];return values.some(v=>partnerStatuses.has(v));});
+export function contextGate(rawEvent,s,{ignoreAge=false}={}){const e=configuredEvent(rawEvent);if(!e||e.city&&e.city!==s.city)return false;const conditions=ignoreAge?(e.conditions??[]).filter(c=>c[0]!=='age'):(e.conditions??[]);if(!matches(s,conditions))return false;const owners=careerEventOwners.get(e.id);if(owners&&(!s.career||s.retired||!owners.has(s.career)))return false;if(needsPartner(conditions)&&!s.partner)return false;return true;}
 const historyMatches=(row,link)=>(!link.eventIds||link.eventIds.includes(row.eventId))&&(!link.category||link.category===row.category);
 const stateRuleMatches=(s,rule)=>{const v=at(s,rule.path);if(rule.equals!==undefined)return v===rule.equals;if(rule.includes!==undefined)return v?.includes?.(rule.includes)??false;if(rule.min!==undefined)return Number(v)>=rule.min;if(rule.truthy!==undefined)return rule.truthy?!!v:!v;return false;};
 const recencyDecay=years=>years<=3?1:Math.max(.4,1-(years-3)*.1);
@@ -30,7 +35,7 @@ const canStart=s=>eligible(s,careerById('founder'));
 const scoredJobs=s=>{const previous=careerById(s.careerHistory.at(-1)?.career);return availableCareers(s).filter(c=>c.id!=='founder').map(c=>{const continuity=c.id===previous?.id?18:previous?.transitions.includes(c.id)?28:0;return {c,score:(cityById(s.city).careerWeights[c.id]??1)*20+s.hobbies[c.hobby]*.5+s.hidden[c.ability]*.2+(s.parents.some(p=>p.career===c.id)?15:0)+(s.npcs.some(n=>n.career===c.id)?10:0)-(s.tags.includes('职业争议')?10:0)+continuity};}).sort((a,b)=>b.score-a.score);};
 const directions=[['软件','programmer'],['金融','finance'],['法律','lawyer'],['医学','doctor'],['教育','teacher'],['警务','police']];
 function transitions(s){const c=careerById(s.career);const related=c?.transitions??[];return availableCareers(s).filter(x=>x.id!==s.career&&x.id!=='founder'&&(related.includes(x.id)||s.hobbies[x.hobby]>=70)).sort((a,b)=>Number(related.includes(b.id))-Number(related.includes(a.id))).slice(0,3);}
-export function materialize(rawEvent,s){const e=configuredEvent(rawEvent),follow=followUpContext(e,s);if(e.followUpOf?.length&&!follow)return null;const out=structuredClone(e);out.eventId=e.id;const C=cityById(s.city);switch(e.builder){
+export function materialize(rawEvent,s,{ignoreAge=false}={}){const e=configuredEvent(rawEvent);if(!contextGate(e,s,{ignoreAge}))return null;const follow=followUpContext(e,s);if(e.followUpOf?.length&&!follow)return null;const out=structuredClone(e);out.eventId=e.id;const C=cityById(s.city);switch(e.builder){
  case 'wish':{const pool=aspirations.filter(a=>a!=='暂时没有明确目标');const start=s.age%pool.length;const picks=Array.from({length:4},(_,i)=>pool[(start+i)%pool.length]);out.options=[...picks.map(a=>opt(a,[{type:'aspiration',value:a}])),opt('暂时没有明确目标',[{type:'aspiration',value:'暂时没有明确目标'}])];break;}
  case 'education':{
   const p=probability(s.stats.intelligence*.25+s.hidden.learning*.25+s.study*8+s.parents.reduce((a,p)=>a+p.education*1.2,0)+C.education*8+s.hidden.luck*.1);
@@ -61,7 +66,7 @@ export function materialize(rawEvent,s){const e=configuredEvent(rawEvent),follow
  if(out.options)out.options=out.options.filter(o=>matches(s,o.conditions)&&(!(o.effects??[]).some(e=>e.type==='startup')||canStart(s)));const source=echoSource(out,s,follow);if(out.echoText&&source)out.text=echoText(out.echoText,source,s)+out.text;const strong=followUpStrength(e,s,follow);if(follow&&strong>1){const effect={type:'echo',key:follow.key};if(out.options)out.options=out.options.map(o=>({...o,effects:[...(o.effects??[]),effect]}));else out.effects=[...(out.effects??[]),effect];}return out;
 }
 export function candidates(s,{includeScheduled=false}={}){
- return events.filter(raw=>(includeScheduled||!raw.scheduledOnly)&&(!raw.city||raw.city===s.city)&&matches(s,raw.conditions)&&!s.history.some(h=>h.eventId===raw.id&&s.age-h.age<raw.cooldown)).map(raw=>{const e=configuredEvent(raw);
+ return events.filter(raw=>(includeScheduled||!raw.scheduledOnly)&&contextGate(raw,s)&&!s.history.some(h=>h.eventId===raw.id&&s.age-h.age<raw.cooldown)).map(raw=>{const e=configuredEvent(raw);
   const event=materialize(e,s);if(!event)return null;let weight=e.weight;const reasons=[`基础权重 ${weight}`];
   for(const rule of e.weights??[]){const v=at(s,rule.path);const amount=rule.equals!==undefined?(v===rule.equals?rule.add:0):rule.includes?(v?.includes(rule.includes)?rule.add:0):Math.max(-5,Math.min(40,(Number(v)||0)*rule.scale));if(amount){weight+=amount;reasons.push(`${rule.dimension} ${amount.toFixed(1)}`);}}
   if(e.hobby){const multiplier=cityById(s.city).hobbyWeights[e.hobby]??1;if(multiplier!==1){weight*=multiplier;reasons.push('城市兴趣活动权重 ×'+multiplier);}}
@@ -71,5 +76,5 @@ export function candidates(s,{includeScheduled=false}={}){
   return {event,weight:Math.max(.01,weight),reasons};
  }).filter(Boolean);
 }
-export function validScheduled(s,q){const e=eventById(q.eventId);return !!e&&(!q.scope||q.scope===s.counts.startups)&&matches(s,q.ignoreAge?e.conditions.filter(c=>c[0]!=='age'):e.conditions);}
-export function scheduledEvent(s){const due=s.scheduled.filter(x=>x.age<=s.age).sort((a,b)=>b.priority-a.priority||a.age-b.age);for(const q of due){const e=eventById(q.eventId);if(e&&validScheduled(s,q)){const event=materialize(e,s);if(event)return {event,weight:1,reasons:[`${q.source}预约于${q.age}岁触发`],scheduled:q};}}return null;}
+export function validScheduled(s,q){const e=eventById(q.eventId);return !!e&&(!q.scope||q.scope===s.counts.startups)&&contextGate(e,s,{ignoreAge:!!q.ignoreAge});}
+export function scheduledEvent(s){const due=s.scheduled.filter(x=>x.age<=s.age).sort((a,b)=>b.priority-a.priority||a.age-b.age);for(const q of due){const e=eventById(q.eventId);if(e&&validScheduled(s,q)){const event=materialize(e,s,{ignoreAge:!!q.ignoreAge});if(event)return {event,weight:1,reasons:[`${q.source}预约于${q.age}岁触发`],scheduled:q};}}return null;}
