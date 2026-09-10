@@ -1,13 +1,7 @@
 name: Balance Failure Diagnostic
 
 on:
-  push:
-    branches:
-      - feature/life-continuity-optimizations
-    paths:
-      - '.github/workflows/balance-diagnostic.yml'
-      - 'scripts/diagnose-balance-choice.mjs'
-      - 'dist/engine/event.js'
+  workflow_dispatch:
 
 jobs:
   diagnose:
