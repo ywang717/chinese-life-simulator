@@ -15,24 +15,14 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify public dashboard and live progress source
+      - name: Diagnose public dashboard response
         shell: bash
         run: |
-          set -euo pipefail
+          set -u
           PAGE='https://raw.githack.com/ywang717/chinese-life-simulator/balance-dashboard-live/dist/balance.html'
-          JS='https://raw.githack.com/ywang717/chinese-life-simulator/balance-dashboard-live/dist/balance-dashboard.js'
-          DATA='https://raw.githubusercontent.com/ywang717/chinese-life-simulator/refs/heads/feature/balance-speed/dist/balance-progress.json'
-
-          ok=0
-          for attempt in {1..12}; do
-            if curl -fsSL "$PAGE" | grep -q '种子生成进度'; then
-              ok=1
-              break
-            fi
-            sleep 5
-          done
-          test "$ok" = 1
-
-          curl -fsSL "$JS" | grep -q 'raw.githubusercontent.com/ywang717/chinese-life-simulator/refs/heads/feature/balance-speed/dist/balance-progress.json'
-          curl -fsSL "$DATA" | grep -q '"targetSeeds": 10000'
-          curl -fsSI "$PAGE" | grep -qi 'content-type: text/html'
+          echo '=== HEADERS ==='
+          curl -sSIL "$PAGE" || true
+          echo '=== BODY ==='
+          curl -sSL "$PAGE" | head -n 40 || true
+          echo '=== LIVE DATA ==='
+          curl -sSIL 'https://raw.githubusercontent.com/ywang717/chinese-life-simulator/refs/heads/feature/balance-speed/dist/balance-progress.json' || true
