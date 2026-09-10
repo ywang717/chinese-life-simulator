@@ -6,6 +6,10 @@ on:
       - feature/life-continuity
       - feature/life-continuity-optimizations
 
+concurrency:
+  group: continuity-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
