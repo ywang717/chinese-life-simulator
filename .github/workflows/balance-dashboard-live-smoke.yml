@@ -15,14 +15,18 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     steps:
-      - name: Diagnose public dashboard response
+      - name: Verify public dashboard and live progress source
         shell: bash
         run: |
-          set -u
+          set -euo pipefail
           PAGE='https://raw.githack.com/ywang717/chinese-life-simulator/balance-dashboard-live/dist/balance.html'
-          echo '=== HEADERS ==='
-          curl -sSIL "$PAGE" || true
-          echo '=== BODY ==='
-          curl -sSL "$PAGE" | head -n 40 || true
-          echo '=== LIVE DATA ==='
-          curl -sSIL 'https://raw.githubusercontent.com/ywang717/chinese-life-simulator/refs/heads/feature/balance-speed/dist/balance-progress.json' || true
+          JS='https://raw.githack.com/ywang717/chinese-life-simulator/balance-dashboard-live/dist/balance-dashboard.js'
+          CSS='https://raw.githack.com/ywang717/chinese-life-simulator/balance-dashboard-live/dist/balance.css'
+          DATA='https://raw.githubusercontent.com/ywang717/chinese-life-simulator/refs/heads/feature/balance-speed/dist/balance-progress.json'
+
+          curl -fsSL -D /tmp/page.headers "$PAGE" -o /tmp/page.html
+          grep -q '种子生成进度' /tmp/page.html
+          grep -qi 'content-type: text/html' /tmp/page.headers
+          curl -fsSL "$JS" | grep -q 'raw.githubusercontent.com/ywang717/chinese-life-simulator/refs/heads/feature/balance-speed/dist/balance-progress.json'
+          curl -fsSL "$CSS" >/dev/null
+          curl -fsSL "$DATA" | grep -q '"targetSeeds": 10000'
