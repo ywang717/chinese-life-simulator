@@ -13,6 +13,7 @@ const injuredWorker=()=>{
   s.major='警务';
   s.hidden.credit=74;
   s.stats.health=45.8;
+  s.tags.push('严重工伤');
   return s;
 };
 
