@@ -51,3 +51,9 @@ test('种子工作流接入进度脚本并允许 dashboard 分支验证',()=>{
     assert.match(yml,/contents:\s*write/);
   }
 });
+
+test('fast scan 诊断不能提前终止 shard，失败应交给 checkpoint 记录并阻断',()=>{
+  const js=read('scripts/diagnose-balance-choice.mjs');
+  assert.doesNotMatch(js,/if\(fromFastScan\)throw new Error/);
+  assert.match(js,/BALANCE_DIAGNOSTIC_SUMMARY/);
+});
