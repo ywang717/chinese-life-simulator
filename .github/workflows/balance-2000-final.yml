@@ -1,17 +1,7 @@
 name: Balance Final 2000 Seeds
 
 on:
-  push:
-    branches:
-      - feature/life-continuity-optimizations
-    paths:
-      - '.github/workflows/balance-2000-final.yml'
-      - 'scripts/balance-*.mjs'
-      - 'dist/engine/event.js'
-      - 'dist/engine/effect.js'
-      - 'dist/engine/year.js'
-      - 'dist/data/events.js'
-      - 'dist/data/careers.js'
+  workflow_dispatch:
 
 jobs:
   shard:
