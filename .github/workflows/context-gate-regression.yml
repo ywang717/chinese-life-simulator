@@ -1,0 +1,20 @@
+name: Context Gate Regression
+
+on:
+  push:
+    branches:
+      - feature/life-continuity-optimizations
+    paths:
+      - 'tests/context-gate.test.js'
+      - 'dist/engine/event.js'
+      - '.github/workflows/context-gate-regression.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/context-gate.test.js
