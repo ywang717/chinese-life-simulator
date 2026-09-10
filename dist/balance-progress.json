@@ -6,11 +6,11 @@
   "scannedSeeds": 0,
   "progressRatio": 0,
   "overallStatus": "running",
-  "activeCheckpoint": 6000,
+  "activeCheckpoint": 1000,
   "totalFailed": 0,
   "elapsedMs": 0,
   "throughput": 0,
-  "updatedAt": "2026-09-10T08:45:51.039Z",
+  "updatedAt": "2026-09-10T08:46:48.356Z",
   "warnings": [],
   "recentFailures": [],
   "checkpoints": [
@@ -18,7 +18,7 @@
       "checkpoint": 1000,
       "start": 0,
       "end": 999,
-      "status": "waiting",
+      "status": "running",
       "scanned": 0,
       "passed": 0,
       "failed": 0,
@@ -26,7 +26,7 @@
       "throughput": 0,
       "warnings": [],
       "failedSeeds": [],
-      "updatedAt": null
+      "updatedAt": "2026-09-10T08:46:48.356Z"
     },
     {
       "checkpoint": 2000,
