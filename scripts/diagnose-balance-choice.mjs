@@ -14,7 +14,7 @@ for(let i=0;i<count;i++){
         console.error('BALANCE_FAILURE '+JSON.stringify({
           offset,shard,index,seed,city,age:s.age,eventId:s.pending?.id??s.pending?.eventId,title:s.pending?.title,
           optionIndex:option,optionText:s.pending?.options?.[option]?.text,effects:s.pending?.options?.[option]?.effects,
-          career:s.career,careerLevel:s.careerLevel,education:s.education,major:s.major,qualifications:s.qualifications,
+          career:s.career,careerLevel:s.careerLevel,retired:s.retired,education:s.education,major:s.major,qualifications:s.qualifications,
           health:s.stats?.health,credit:s.hidden?.credit,tags:s.tags,careerHistory:s.careerHistory
         }));
         throw error;
