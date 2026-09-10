@@ -1,0 +1,162 @@
+name: Balance 0 to 5000 Latest
+
+on:
+  push:
+    branches:
+      - feature/life-continuity-optimizations
+    paths:
+      - '.github/workflows/balance-0-to-5000-latest.yml'
+      - 'dist/engine/event.js'
+      - 'dist/engine/year.js'
+      - 'dist/data/events.js'
+      - 'dist/data/careers.js'
+      - 'dist/data/continuity.js'
+      - 'dist/state/player.js'
+      - 'scripts/balance-shard.mjs'
+      - 'scripts/balance-aggregate.mjs'
+
+jobs:
+  batch_0:
+    name: 0-999 shard ${{ matrix.shard }}
+    strategy:
+      fail-fast: false
+      matrix: {shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-shard.mjs
+        env: {OFFSET: '0', SHARD: '${{ matrix.shard }}', COUNT: '50', OUT: 'balance-${{ matrix.shard }}.json'}
+      - uses: actions/upload-artifact@v4
+        with: {name: 'latest-balance-0-${{ matrix.shard }}', path: 'balance-${{ matrix.shard }}.json', retention-days: 14}
+  checkpoint_1000:
+    name: Checkpoint 1000 Latest
+    needs: batch_0
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/download-artifact@v4
+        with: {pattern: 'latest-balance-0-*', path: balance-results}
+      - run: node scripts/balance-aggregate.mjs
+        env: {OUT: balance-summary-1000.json}
+      - uses: actions/upload-artifact@v4
+        with: {name: latest-balance-checkpoint-1000, path: balance-summary-1000.json, retention-days: 30}
+  batch_1000:
+    name: 1000-1999 shard ${{ matrix.shard }}
+    needs: checkpoint_1000
+    strategy:
+      fail-fast: false
+      matrix: {shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-shard.mjs
+        env: {OFFSET: '1000', SHARD: '${{ matrix.shard }}', COUNT: '50', OUT: 'balance-${{ matrix.shard }}.json'}
+      - uses: actions/upload-artifact@v4
+        with: {name: 'latest-balance-1000-${{ matrix.shard }}', path: 'balance-${{ matrix.shard }}.json', retention-days: 14}
+  checkpoint_2000:
+    name: Checkpoint 2000 Latest
+    needs: batch_1000
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/download-artifact@v4
+        with: {pattern: 'latest-balance-1000-*', path: balance-results}
+      - run: node scripts/balance-aggregate.mjs
+        env: {OUT: balance-summary-2000.json}
+      - uses: actions/upload-artifact@v4
+        with: {name: latest-balance-checkpoint-2000, path: balance-summary-2000.json, retention-days: 30}
+  batch_2000:
+    name: 2000-2999 shard ${{ matrix.shard }}
+    needs: checkpoint_2000
+    strategy:
+      fail-fast: false
+      matrix: {shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-shard.mjs
+        env: {OFFSET: '2000', SHARD: '${{ matrix.shard }}', COUNT: '50', OUT: 'balance-${{ matrix.shard }}.json'}
+      - uses: actions/upload-artifact@v4
+        with: {name: 'latest-balance-2000-${{ matrix.shard }}', path: 'balance-${{ matrix.shard }}.json', retention-days: 14}
+  checkpoint_3000:
+    name: Checkpoint 3000 Latest
+    needs: batch_2000
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/download-artifact@v4
+        with: {pattern: 'latest-balance-2000-*', path: balance-results}
+      - run: node scripts/balance-aggregate.mjs
+        env: {OUT: balance-summary-3000.json}
+      - uses: actions/upload-artifact@v4
+        with: {name: latest-balance-checkpoint-3000, path: balance-summary-3000.json, retention-days: 30}
+  batch_3000:
+    name: 3000-3999 shard ${{ matrix.shard }}
+    needs: checkpoint_3000
+    strategy:
+      fail-fast: false
+      matrix: {shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-shard.mjs
+        env: {OFFSET: '3000', SHARD: '${{ matrix.shard }}', COUNT: '50', OUT: 'balance-${{ matrix.shard }}.json'}
+      - uses: actions/upload-artifact@v4
+        with: {name: 'latest-balance-3000-${{ matrix.shard }}', path: 'balance-${{ matrix.shard }}.json', retention-days: 14}
+  checkpoint_4000:
+    name: Checkpoint 4000 Latest
+    needs: batch_3000
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/download-artifact@v4
+        with: {pattern: 'latest-balance-3000-*', path: balance-results}
+      - run: node scripts/balance-aggregate.mjs
+        env: {OUT: balance-summary-4000.json}
+      - uses: actions/upload-artifact@v4
+        with: {name: latest-balance-checkpoint-4000, path: balance-summary-4000.json, retention-days: 30}
+  batch_4000:
+    name: 4000-4999 shard ${{ matrix.shard }}
+    needs: checkpoint_4000
+    strategy:
+      fail-fast: false
+      matrix: {shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-shard.mjs
+        env: {OFFSET: '4000', SHARD: '${{ matrix.shard }}', COUNT: '50', OUT: 'balance-${{ matrix.shard }}.json'}
+      - uses: actions/upload-artifact@v4
+        with: {name: 'latest-balance-4000-${{ matrix.shard }}', path: 'balance-${{ matrix.shard }}.json', retention-days: 14}
+  checkpoint_5000:
+    name: Checkpoint 5000 Latest
+    needs: batch_4000
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/download-artifact@v4
+        with: {pattern: 'latest-balance-4000-*', path: balance-results}
+      - run: node scripts/balance-aggregate.mjs
+        env: {OUT: balance-summary-5000.json}
+      - uses: actions/upload-artifact@v4
+        with: {name: latest-balance-checkpoint-5000, path: balance-summary-5000.json, retention-days: 30}
