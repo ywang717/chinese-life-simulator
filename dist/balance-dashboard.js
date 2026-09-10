@@ -12,6 +12,7 @@ const formatDuration=ms=>{
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const statusText={waiting:'等待',running:'运行中',passed:'通过',blocked:'阻断',completed:'全部完成'};
 const statusSentence={waiting:'测试尚未开始。',running:'正在生成和验证固定人生种子。',blocked:'检测到失败种子，后续批次已阻断。',completed:'10,000 个固定人生种子已全部通过。'};
+const progressUrl='https://raw.githubusercontent.com/ywang717/chinese-life-simulator/refs/heads/feature/balance-speed/dist/balance-progress.json';
 let loading=false;
 
 function renderCheckpoints(rows=[]){
@@ -65,7 +66,7 @@ async function load(){
   const button=document.querySelector('[data-action="refresh"]');
   if(button)button.disabled=true;
   try{
-    const response=await fetch('./balance-progress.json?ts='+Date.now(),{cache:'no-store'});
+    const response=await fetch(progressUrl+'?ts='+Date.now(),{cache:'no-store'});
     if(!response.ok)throw new Error(`HTTP ${response.status}`);
     render(await response.json());
   }catch(error){
