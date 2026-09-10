@@ -5,12 +5,24 @@ import {careers,careerById,availableCareers,eligible} from '../data/careers.js';
 import {aspirations,clubs} from '../data/catalog.js';
 import {at} from './effect.js';
 import {probability} from './probability.js';
-for(const e of events)Object.assign(e,continuityByEventId[e.id]??{});
+const configuredEvent=e=>({...e,...(e.category==='城市'?{cityHistoryLinks:[{within:3,add:24}]}:{}),...(continuityByEventId[e.id]??{})});
 export function matches(s,conditions=[]){return conditions.every(([path,op,value])=>{const v=at(s,path);switch(op){case '==':return v===value;case '!=':return v!==value;case '>':return v>value;case '>=':return v>=value;case '<':return v<value;case '<=':return v<=value;case 'in':return value.includes(v);case 'includes':return v?.includes(value);case 'notIncludes':return !v?.includes(value);case 'truthy':return !!v;case 'falsy':return !v;default:return false;}});}
+const careerEventOwners=new Map();
+for(const c of careers)for(const id of c.exclusiveEvents??[]){if(!careerEventOwners.has(id))careerEventOwners.set(id,new Set());careerEventOwners.get(id).add(c.id);}
+const partnerStatuses=new Set(['恋爱','已婚','再婚']);
+const needsPartner=conditions=>conditions.some(([path,op,value])=>{if(path?.startsWith?.('partner.'))return true;if(path!=='relationshipStatus')return false;const values=op==='in'&&Array.isArray(value)?value:[value];return values.some(v=>partnerStatuses.has(v));});
+export function contextGate(rawEvent,s,{ignoreAge=false}={}){const e=configuredEvent(rawEvent);if(!e||e.city&&e.city!==s.city)return false;const conditions=ignoreAge?(e.conditions??[]).filter(c=>c[0]!=='age'):(e.conditions??[]);if(!matches(s,conditions))return false;const owners=careerEventOwners.get(e.id);if(owners&&(!s.career||s.retired||!owners.has(s.career)))return false;if(needsPartner(conditions)&&!s.partner)return false;return true;}
 const historyMatches=(row,link)=>(!link.eventIds||link.eventIds.includes(row.eventId))&&(!link.category||link.category===row.category);
 const stateRuleMatches=(s,rule)=>{const v=at(s,rule.path);if(rule.equals!==undefined)return v===rule.equals;if(rule.includes!==undefined)return v?.includes?.(rule.includes)??false;if(rule.min!==undefined)return Number(v)>=rule.min;if(rule.truthy!==undefined)return rule.truthy?!!v:!v;return false;};
-export function continuityScore(event,s){let score=0;for(const link of event.historyLinks??[]){const within=link.within??10;const row=s.history.slice().reverse().find(h=>s.age-h.age<=within&&s.age-h.age>=0&&historyMatches(h,link));if(row){const years=s.age-row.age;const decay=years<=3?1:Math.max(.4,1-(years-3)*.1);score+=(link.add??20)*decay;}}for(const rule of event.memoryWeights??[])if(stateRuleMatches(s,rule))score+=rule.add??0;return Math.min(90,score);}
+const recencyDecay=years=>years<=3?1:Math.max(.4,1-(years-3)*.1);
+const addRecent=(score,years,add)=>score+(add??20)*recencyDecay(years);
+export function continuityScore(rawEvent,s){const event=configuredEvent(rawEvent);let score=0;for(const link of event.historyLinks??[]){const within=link.within??10;const row=s.history.slice().reverse().find(h=>s.age-h.age<=within&&s.age-h.age>=0&&historyMatches(h,link));if(row)score=addRecent(score,s.age-row.age,link.add);}
+ for(const link of event.cityHistoryLinks??[]){const within=link.within??10,target=link.city??event.city??s.city;const row=s.cityHistory?.slice(1).reverse().find(h=>h.city===target&&s.age-h.startAge>=0&&s.age-h.startAge<=within);if(row)score=addRecent(score,s.age-row.startAge,link.add);}
+ for(const link of event.careerHistoryLinks??[]){const within=link.within??10;const row=s.careerHistory?.slice().reverse().find(h=>(!link.careerIds||link.careerIds.includes(h.career))&&s.age-(h.endAge??h.startAge)>=0&&s.age-(h.endAge??h.startAge)<=within);if(row)score=addRecent(score,s.age-(row.endAge??row.startAge),link.add);}
+ for(const link of event.npcLinks??[]){const within=link.within??10;let best=null;for(const npc of s.npcs??[]){if(npc.alive===false||(link.minTrust!==undefined&&(npc.trust??0)<link.minTrust)||(link.roles&&!link.roles.includes(npc.role))||(link.careerIds&&!link.careerIds.includes(npc.career)))continue;for(const exp of npc.experiences??[]){const years=s.age-exp.age;if(years>=0&&years<=within&&(best===null||years<best))best=years;}}if(best!==null)score=addRecent(score,best,link.add);}
+ for(const rule of event.memoryWeights??[])if(stateRuleMatches(s,rule))score+=rule.add??0;return Math.min(90,score);}
 const followUpContext=(event,s)=>{if(!event.followUpOf?.length)return null;const row=s.history.slice().reverse().find(h=>event.followUpOf.includes(h.eventId));if(!row)return null;const key=`${row.eventId}:${row.age}`;return {row,key,used:s.echoUsage?.[key]??0};};
+const followUpStrength=(event,s,follow)=>{if(!follow||follow.used>=3)return 1;const years=Math.max(0,s.age-follow.row.age),base=event.followUpMultiplier??3;if(years<=3)return base;if(years<=7)return 1+(base-1)*.5;if(years<=10)return 1+(base-1)*.15;return 1;};
 const echoSource=(event,s,follow)=>{if(follow)return follow.row;for(const link of event.historyLinks??[]){const within=link.within??10;const row=s.history.slice().reverse().find(h=>s.age-h.age<=within&&s.age-h.age>=0&&historyMatches(h,link));if(row)return row;}return null;};
 const echoText=(template,row,s)=>template.replaceAll('{years}',String(Math.max(0,s.age-row.age))).replaceAll('{title}',row.title??'那段经历').replaceAll('{city}',cityById(row.city).name);
 const opt=(text,effects)=>({text,effects});
@@ -19,10 +31,11 @@ const career=id=>({type:'career',id});
 const migrate=(city,reason,family=false)=>({type:'migrate',city,reason,family});
 const school=(level,text,major)=>({type:'education',level,text,major});
 const note=text=>({type:'note',text});
+const canStart=s=>eligible(s,careerById('founder'));
 const scoredJobs=s=>{const previous=careerById(s.careerHistory.at(-1)?.career);return availableCareers(s).filter(c=>c.id!=='founder').map(c=>{const continuity=c.id===previous?.id?18:previous?.transitions.includes(c.id)?28:0;return {c,score:(cityById(s.city).careerWeights[c.id]??1)*20+s.hobbies[c.hobby]*.5+s.hidden[c.ability]*.2+(s.parents.some(p=>p.career===c.id)?15:0)+(s.npcs.some(n=>n.career===c.id)?10:0)-(s.tags.includes('职业争议')?10:0)+continuity};}).sort((a,b)=>b.score-a.score);};
 const directions=[['软件','programmer'],['金融','finance'],['法律','lawyer'],['医学','doctor'],['教育','teacher'],['警务','police']];
 function transitions(s){const c=careerById(s.career);const related=c?.transitions??[];return availableCareers(s).filter(x=>x.id!==s.career&&x.id!=='founder'&&(related.includes(x.id)||s.hobbies[x.hobby]>=70)).sort((a,b)=>Number(related.includes(b.id))-Number(related.includes(a.id))).slice(0,3);}
-export function materialize(e,s){const follow=followUpContext(e,s);if(e.followUpOf?.length&&!follow)return null;const out=structuredClone(e);out.eventId=e.id;const C=cityById(s.city);switch(e.builder){
+export function materialize(rawEvent,s,{ignoreAge=false}={}){const e=configuredEvent(rawEvent);if(!contextGate(e,s,{ignoreAge}))return null;const follow=followUpContext(e,s);if(e.followUpOf?.length&&!follow)return null;const out=structuredClone(e);out.eventId=e.id;const C=cityById(s.city);switch(e.builder){
  case 'wish':{const pool=aspirations.filter(a=>a!=='暂时没有明确目标');const start=s.age%pool.length;const picks=Array.from({length:4},(_,i)=>pool[(start+i)%pool.length]);out.options=[...picks.map(a=>opt(a,[{type:'aspiration',value:a}])),opt('暂时没有明确目标',[{type:'aspiration',value:'暂时没有明确目标'}])];break;}
  case 'education':{
   const p=probability(s.stats.intelligence*.25+s.hidden.learning*.25+s.study*8+s.parents.reduce((a,p)=>a+p.education*1.2,0)+C.education*8+s.hidden.luck*.1);
@@ -46,22 +59,22 @@ export function materialize(e,s){const follow=followUpContext(e,s);if(e.followUp
  case 'oldMemory':{const n=s.npcs.find(n=>n.alive&&n.experiences.some(e=>s.age-e.age>=10)&&n.trust>=50);if(!n)return null;out.options[0].effects=out.options[0].effects.map(e=>e.type==='npc'?{...e,id:n.id}:e);break;}
  case 'marriage':{out.options=[opt('在'+C.name+'共同生活',[{type:'partner',action:'marry'},{type:'set',path:'partner.city',value:s.city}])];if(s.partner.city!==s.city)out.options.push(opt('迁往'+cityById(s.partner.city).name,[{type:'partner',action:'marry'},migrate('partner','婚姻定居')]));out.options.push(opt('暂时异地结婚',[{type:'partner',action:'marry'}]),opt('暂缓结婚',[{type:'partner',value:-3}]));break;}
  case 'care':{if(!s.parents.some(p=>p.alive&&(p.age>=65||p.health<45)))return null;out.options=[opt('回家乡照顾父母',[migrate('home','照顾父母'),stat('happiness',5)]),opt('安排照护，定期探望',[{type:'cash',value:-10000},{type:'personality',key:'helpful',value:5}])];break;}
- case 'injury':{out.options=[opt('留在行业，转管理',[{type:'level',value:4},{type:'set',path:'effort',value:'balanced'}]),opt('去苏州做销售',[career('sales'),migrate('suzhou','工伤后转行')]),opt('暂时休息，离开行业',[career(null),stat('health',10),{type:'schedule',eventId:'job_search',after:2}])];break;}
+ case 'injury':{if(s.retired)return null;const sales=careerById('sales');out.options=[opt('留在行业，转管理',[{type:'level',value:4},{type:'set',path:'effort',value:'balanced'}]),...(eligible(s,sales)?[opt('去苏州做销售',[career('sales'),migrate('suzhou','工伤后转行')])]:[]),opt('暂时休息，离开行业',[career(null),stat('health',10),{type:'schedule',eventId:'job_search',after:2}])];break;}
  case 'sportExit':{const target=s.career==='esports'?'game':'sales';out.options=[opt('退役，转向'+careerById(target).name,[school(Math.max(4,s.education),'完成退役职业培训'),career(target),{type:'tag',key:'竞技退役'}]),opt('再坚持一个赛季',[stat('health',-8),{type:'schedule',eventId:'sport_retirement',after:1}])];break;}
  case 'retirement':{out.options=[opt('留在'+C.name,[{type:'retire'}]),opt('回到家乡',[{type:'retire'},migrate('home','退休回乡',true)]),opt('迁居成都',[{type:'retire'},migrate('chengdu','退休迁居',true)])];break;}
  }
- if(out.options)out.options=out.options.filter(o=>matches(s,o.conditions));const source=echoSource(out,s,follow);if(out.echoText&&source)out.text=echoText(out.echoText,source,s)+out.text;if(follow&&follow.used<3){const effect={type:'echo',key:follow.key};if(out.options)out.options=out.options.map(o=>({...o,effects:[...(o.effects??[]),effect]}));else out.effects=[...(out.effects??[]),effect];}return out;
+ if(out.options)out.options=out.options.filter(o=>matches(s,o.conditions)&&(!(o.effects??[]).some(e=>e.type==='startup')||canStart(s)));const source=echoSource(out,s,follow);if(out.echoText&&source)out.text=echoText(out.echoText,source,s)+out.text;const strong=followUpStrength(e,s,follow);if(follow&&strong>1){const effect={type:'echo',key:follow.key};if(out.options)out.options=out.options.map(o=>({...o,effects:[...(o.effects??[]),effect]}));else out.effects=[...(out.effects??[]),effect];}return out;
 }
 export function candidates(s,{includeScheduled=false}={}){
- return events.filter(e=>(includeScheduled||!e.scheduledOnly)&&(!e.city||e.city===s.city)&&matches(s,e.conditions)&&!s.history.some(h=>h.eventId===e.id&&s.age-h.age<e.cooldown)).map(e=>{
+ return events.filter(raw=>(includeScheduled||!raw.scheduledOnly)&&contextGate(raw,s)&&!s.history.some(h=>h.eventId===raw.id&&s.age-h.age<raw.cooldown)).map(raw=>{const e=configuredEvent(raw);
   const event=materialize(e,s);if(!event)return null;let weight=e.weight;const reasons=[`基础权重 ${weight}`];
   for(const rule of e.weights??[]){const v=at(s,rule.path);const amount=rule.equals!==undefined?(v===rule.equals?rule.add:0):rule.includes?(v?.includes(rule.includes)?rule.add:0):Math.max(-5,Math.min(40,(Number(v)||0)*rule.scale));if(amount){weight+=amount;reasons.push(`${rule.dimension} ${amount.toFixed(1)}`);}}
   if(e.hobby){const multiplier=cityById(s.city).hobbyWeights[e.hobby]??1;if(multiplier!==1){weight*=multiplier;reasons.push('城市兴趣活动权重 ×'+multiplier);}}
-  const continuity=continuityScore(e,s);if(continuity){weight+=continuity;reasons.push(`人生连续性 +${continuity.toFixed(1)}`);}const follow=followUpContext(e,s);if(follow&&follow.used<3){const multiplier=e.followUpMultiplier??3;weight*=multiplier;reasons.push(`明确后续 ×${multiplier}`);}
+  const continuity=continuityScore(e,s);if(continuity){weight+=continuity;reasons.push(`人生连续性 +${continuity.toFixed(1)}`);}const follow=followUpContext(e,s),strong=followUpStrength(e,s,follow);if(strong>1){weight*=strong;reasons.push(`明确后续 ×${strong.toFixed(2)}`);}
   const count=s.history.slice(-5).filter(h=>h.category===e.category).length;weight/=1+count*1.5;if(count)reasons.push(`近五年同类 ${count} 次，降权`);
   if(e.category==='职业'&&s.history.slice(-3).every(h=>h.category==='职业'))weight*=.05;
   return {event,weight:Math.max(.01,weight),reasons};
  }).filter(Boolean);
 }
-export function validScheduled(s,q){const e=eventById(q.eventId);return !!e&&(!q.scope||q.scope===s.counts.startups)&&matches(s,q.ignoreAge?e.conditions.filter(c=>c[0]!=='age'):e.conditions);}
-export function scheduledEvent(s){const due=s.scheduled.filter(x=>x.age<=s.age).sort((a,b)=>b.priority-a.priority||a.age-b.age);for(const q of due){const e=eventById(q.eventId);if(e&&validScheduled(s,q)){const event=materialize(e,s);if(event)return {event,weight:1,reasons:[`${q.source}预约于${q.age}岁触发`],scheduled:q};}}return null;}
+export function validScheduled(s,q){const e=eventById(q.eventId);return !!e&&(!q.scope||q.scope===s.counts.startups)&&contextGate(e,s,{ignoreAge:!!q.ignoreAge});}
+export function scheduledEvent(s){const due=s.scheduled.filter(x=>x.age<=s.age).sort((a,b)=>b.priority-a.priority||a.age-b.age);for(const q of due){const e=eventById(q.eventId);if(e&&validScheduled(s,q)){const event=materialize(e,s,{ignoreAge:!!q.ignoreAge});if(event)return {event,weight:1,reasons:[`${q.source}预约于${q.age}岁触发`],scheduled:q};}}return null;}

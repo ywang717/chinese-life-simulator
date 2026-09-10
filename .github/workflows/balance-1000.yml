@@ -1,0 +1,48 @@
+name: Balance 1000 Seeds
+
+on:
+  workflow_dispatch:
+
+jobs:
+  shard:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run 50 lifetimes
+        env:
+          SHARD: ${{ matrix.shard }}
+          COUNT: '50'
+          OUT: balance-${{ matrix.shard }}.json
+        run: node scripts/balance-shard.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-${{ matrix.shard }}
+          path: balance-${{ matrix.shard }}.json
+          retention-days: 7
+
+  aggregate:
+    needs: shard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: balance-*
+          path: balance-results
+      - name: Aggregate 1000 lifetimes
+        run: node scripts/balance-aggregate.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-summary-1000
+          path: balance-summary.json
+          retention-days: 14

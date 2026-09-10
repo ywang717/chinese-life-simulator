@@ -1,0 +1,19 @@
+name: Balance Failure Diagnostic
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reproduce 6000 checkpoint failure range
+        env:
+          OFFSET: '6200'
+          SHARD: '0'
+          COUNT: '50'
+        run: node scripts/diagnose-balance-choice.mjs
