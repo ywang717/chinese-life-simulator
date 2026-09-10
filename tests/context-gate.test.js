@@ -40,3 +40,13 @@ test('需要伴侣的关系事件在伴侣状态缺失时应安全排除',()=>{
   assert.doesNotThrow(()=>materialize(eventById('marriage'),s));
   assert.equal(materialize(eventById('marriage'),s),null);
 });
+
+test('工伤转职只展示当前真正具备资格的职业选项',()=>{
+  const s=player({age:40,career:'shipyard',retired:false,education:3,major:'通用'});
+  s.tags.push('严重工伤');
+  s.hidden.credit=-10;
+  const event=materialize(eventById('injury_transition'),s);
+  assert.ok(event);
+  assert.equal(event.options.some(o=>o.text.includes('苏州做销售')),false);
+  assert.ok(event.options.some(o=>o.text.includes('离开行业')));
+});
