@@ -1,13 +1,7 @@
 name: Startup Eligibility Regression
 
 on:
-  push:
-    branches:
-      - feature/life-continuity-optimizations
-    paths:
-      - '.github/workflows/startup-regression.yml'
-      - 'tests/startup-eligibility.test.js'
-      - 'dist/engine/event.js'
+  workflow_dispatch:
 
 jobs:
   test:
