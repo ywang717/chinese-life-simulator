@@ -43,11 +43,13 @@ test('看板脚本只读取同源 progress JSON 并支持自动刷新',()=>{
   assert.doesNotMatch(js,/api\.github\.com|Authorization|token/i);
 });
 
-test('种子工作流接入进度脚本并允许 dashboard 分支验证',()=>{
+test('种子工作流通过统一发布脚本更新进度并允许 dashboard 分支验证',()=>{
+  const publisher=read('scripts/publish-balance-progress.sh');
+  assert.match(publisher,/node scripts\/balance-progress\.mjs/);
   for(const path of ['.github/workflows/balance-0-to-5000-latest.yml','.github/workflows/balance-5000-to-10000.yml']){
     const yml=read(path);
     assert.match(yml,/feature\/balance-dashboard/);
-    assert.match(yml,/scripts\/balance-progress\.mjs/);
+    assert.match(yml,/scripts\/publish-balance-progress\.sh/);
     assert.match(yml,/contents:\s*write/);
   }
 });
