@@ -6,6 +6,12 @@ on:
       - feature/life-continuity-optimizations
     paths:
       - '.github/workflows/balance-2000.yml'
+      - 'scripts/balance-*.mjs'
+      - 'dist/engine/event.js'
+      - 'dist/engine/effect.js'
+      - 'dist/engine/year.js'
+      - 'dist/data/events.js'
+      - 'dist/data/careers.js'
 
 jobs:
   shard:
