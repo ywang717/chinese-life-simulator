@@ -8,6 +8,7 @@ on:
       - '.github/workflows/dashboard-regression.yml'
       - 'tests/balance-dashboard.test.js'
       - 'scripts/balance-progress*.mjs'
+      - 'scripts/diagnose-balance-choice.mjs'
       - 'dist/balance.html'
       - 'dist/balance-dashboard.js'
       - 'dist/balance-progress.json'
