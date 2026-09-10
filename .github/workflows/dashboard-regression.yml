@@ -1,0 +1,25 @@
+name: Balance Dashboard Regression
+
+on:
+  push:
+    branches:
+      - feature/balance-dashboard
+    paths:
+      - '.github/workflows/dashboard-regression.yml'
+      - 'tests/balance-dashboard.test.js'
+      - 'scripts/balance-progress*.mjs'
+      - 'scripts/diagnose-balance-choice.mjs'
+      - 'dist/balance.html'
+      - 'dist/balance-dashboard.js'
+      - 'dist/balance-progress.json'
+      - '.github/workflows/balance-0-to-5000-latest.yml'
+      - '.github/workflows/balance-5000-to-10000.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node --test tests/balance-dashboard.test.js

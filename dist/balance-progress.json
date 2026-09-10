@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "targetSeeds": 10000,
+  "batchSize": 1000,
+  "completedSeeds": 0,
+  "scannedSeeds": 0,
+  "progressRatio": 0,
+  "overallStatus": "waiting",
+  "activeCheckpoint": 1000,
+  "totalFailed": 0,
+  "elapsedMs": 0,
+  "throughput": 0,
+  "updatedAt": "2026-09-10T06:15:00.000Z",
+  "warnings": [],
+  "recentFailures": [],
+  "checkpoints": [
+    {"checkpoint":1000,"start":0,"end":999,"status":"waiting","scanned":0,"passed":0,"failed":0,"elapsedMs":0,"throughput":0,"warnings":[],"failedSeeds":[],"updatedAt":null},
+    {"checkpoint":2000,"start":1000,"end":1999,"status":"waiting","scanned":0,"passed":0,"failed":0,"elapsedMs":0,"throughput":0,"warnings":[],"failedSeeds":[],"updatedAt":null},
+    {"checkpoint":3000,"start":2000,"end":2999,"status":"waiting","scanned":0,"passed":0,"failed":0,"elapsedMs":0,"throughput":0,"warnings":[],"failedSeeds":[],"updatedAt":null},
+    {"checkpoint":4000,"start":3000,"end":3999,"status":"waiting","scanned":0,"passed":0,"failed":0,"elapsedMs":0,"throughput":0,"warnings":[],"failedSeeds":[],"updatedAt":null},
+    {"checkpoint":5000,"start":4000,"end":4999,"status":"waiting","scanned":0,"passed":0,"failed":0,"elapsedMs":0,"throughput":0,"warnings":[],"failedSeeds":[],"updatedAt":null},
+    {"checkpoint":6000,"start":5000,"end":5999,"status":"waiting","scanned":0,"passed":0,"failed":0,"elapsedMs":0,"throughput":0,"warnings":[],"failedSeeds":[],"updatedAt":null},
+    {"checkpoint":7000,"start":6000,"end":6999,"status":"waiting","scanned":0,"passed":0,"failed":0,"elapsedMs":0,"throughput":0,"warnings":[],"failedSeeds":[],"updatedAt":null},
+    {"checkpoint":8000,"start":7000,"end":7999,"status":"waiting","scanned":0,"passed":0,"failed":0,"elapsedMs":0,"throughput":0,"warnings":[],"failedSeeds":[],"updatedAt":null},
+    {"checkpoint":9000,"start":8000,"end":8999,"status":"waiting","scanned":0,"passed":0,"failed":0,"elapsedMs":0,"throughput":0,"warnings":[],"failedSeeds":[],"updatedAt":null},
+    {"checkpoint":10000,"start":9000,"end":9999,"status":"waiting","scanned":0,"passed":0,"failed":0,"elapsedMs":0,"throughput":0,"warnings":[],"failedSeeds":[],"updatedAt":null}
+  ]
+}

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#202d31">
+  <meta name="description" content="人生手记种子生成与平衡测试进度看板。">
+  <title>种子生成进度 · 人生手记</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./balance.css">
+</head>
+<body>
+  <div class="shell dashboard-shell">
+    <header class="topbar">
+      <div class="brand">人生手记<span class="edition">种子生成进度</span></div>
+      <div class="top-actions">
+        <a class="button-link quiet" href="./">返回游戏</a>
+        <button class="quiet" type="button" data-action="refresh">刷新状态</button>
+      </div>
+    </header>
+
+    <main class="dashboard-main">
+      <section class="dashboard-hero page-card">
+        <div>
+          <div class="eyebrow">10,000 固定人生种子验证</div>
+          <h1>种子生成进度</h1>
+          <p class="muted" data-role="status-text">正在读取最新进度……</p>
+        </div>
+        <div class="dashboard-total" data-role="total-progress">
+          <strong>0 / 10,000</strong>
+          <span>0%</span>
+        </div>
+        <div class="dashboard-progress-track" aria-label="总进度">
+          <span data-role="progress-bar" style="width:0%"></span>
+        </div>
+      </section>
+
+      <section class="dashboard-metrics" aria-label="核心指标">
+        <article class="metric-card"><span>确认通过</span><strong data-role="completed">0</strong><small>seeds</small></article>
+        <article class="metric-card"><span>已扫描</span><strong data-role="scanned">0</strong><small>seeds</small></article>
+        <article class="metric-card"><span>吞吐量</span><strong data-role="throughput">0.00</strong><small>seeds/s</small></article>
+        <article class="metric-card"><span>失败</span><strong data-role="failed">0</strong><small>seeds</small></article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="page-card">
+          <div class="dashboard-section-head">
+            <div><div class="eyebrow">每 1,000 条独立检查</div><h2>Checkpoint</h2></div>
+            <span class="status-chip" data-role="overall-status">等待</span>
+          </div>
+          <div class="checkpoint-list" data-role="checkpoint-list"></div>
+        </article>
+
+        <aside class="dashboard-side">
+          <section class="page-card">
+            <h2 class="section-title">当前状态</h2>
+            <dl>
+              <div class="row"><dt>当前节点</dt><dd data-role="active-checkpoint">Checkpoint 1000</dd></div>
+              <div class="row"><dt>最后更新</dt><dd data-role="updated-at">—</dd></div>
+              <div class="row"><dt>累计计算</dt><dd data-role="elapsed">—</dd></div>
+            </dl>
+          </section>
+          <section class="page-card">
+            <h2 class="section-title">平衡警告</h2>
+            <div data-role="warnings"><p class="empty compact-empty">暂无警告</p></div>
+          </section>
+        </aside>
+      </section>
+
+      <section class="page-card">
+        <div class="dashboard-section-head">
+          <div><div class="eyebrow">只显示最近 20 条</div><h2>失败种子</h2></div>
+          <span class="muted" data-role="failure-count">0 条</span>
+        </div>
+        <div data-role="failed-seeds"><p class="empty compact-empty">目前没有失败种子。</p></div>
+      </section>
+
+      <p class="footer">看板读取同源静态进度文件，不访问私有 GitHub API。页面会自动刷新，也可以手动刷新。</p>
+    </main>
+  </div>
+  <script type="module" src="./balance-dashboard.js"></script>
+</body>
+</html>

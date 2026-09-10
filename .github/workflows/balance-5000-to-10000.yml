@@ -5,6 +5,7 @@ on:
     branches:
       - feature/life-continuity-optimizations
       - feature/balance-speed
+      - feature/balance-dashboard
     paths:
       - '.github/workflows/balance-5000-to-10000.yml'
       - 'dist/engine/event.js'
@@ -17,18 +18,30 @@ on:
       - 'scripts/balance-shard.mjs'
       - 'scripts/balance-aggregate.mjs'
       - 'scripts/diagnose-balance-choice.mjs'
+      - 'scripts/balance-progress*.mjs'
+      - 'scripts/publish-balance-progress.sh'
       - 'tests/balance-speed.test.js'
+
+permissions:
+  contents: write
 
 jobs:
   gate:
     name: Balance gate
     runs-on: ubuntu-latest
+    concurrency:
+      group: balance-progress-write
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - run: npm test
       - run: npm run build
+      - name: Mark 5000-5999 running
+        run: bash scripts/publish-balance-progress.sh
+        env: {CHECKPOINT: '6000', STATUS: 'running'}
 
   batch_5000:
     name: 5000-5999 shard ${{ matrix.shard }}
@@ -55,12 +68,19 @@ jobs:
     name: Checkpoint 6000
     needs: batch_5000
     runs-on: ubuntu-latest
+    concurrency:
+      group: balance-progress-write
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - uses: actions/download-artifact@v4
         with: {pattern: 'balance-5000-*', path: balance-results}
+      - name: Update dashboard and start next batch
+        run: bash scripts/publish-balance-progress.sh
+        env: {CHECKPOINT: '6000', INPUT_DIR: balance-results, NEXT_CHECKPOINT: '7000'}
       - run: node scripts/balance-aggregate.mjs
         env: {OUT: balance-summary-6000.json}
       - uses: actions/upload-artifact@v4
@@ -89,12 +109,19 @@ jobs:
     name: Checkpoint 7000
     needs: batch_6000
     runs-on: ubuntu-latest
+    concurrency:
+      group: balance-progress-write
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - uses: actions/download-artifact@v4
         with: {pattern: 'balance-6000-*', path: balance-results}
+      - name: Update dashboard and start next batch
+        run: bash scripts/publish-balance-progress.sh
+        env: {CHECKPOINT: '7000', INPUT_DIR: balance-results, NEXT_CHECKPOINT: '8000'}
       - run: node scripts/balance-aggregate.mjs
         env: {OUT: balance-summary-7000.json}
       - uses: actions/upload-artifact@v4
@@ -123,12 +150,19 @@ jobs:
     name: Checkpoint 8000
     needs: batch_7000
     runs-on: ubuntu-latest
+    concurrency:
+      group: balance-progress-write
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - uses: actions/download-artifact@v4
         with: {pattern: 'balance-7000-*', path: balance-results}
+      - name: Update dashboard and start next batch
+        run: bash scripts/publish-balance-progress.sh
+        env: {CHECKPOINT: '8000', INPUT_DIR: balance-results, NEXT_CHECKPOINT: '9000'}
       - run: node scripts/balance-aggregate.mjs
         env: {OUT: balance-summary-8000.json}
       - uses: actions/upload-artifact@v4
@@ -157,12 +191,19 @@ jobs:
     name: Checkpoint 9000
     needs: batch_8000
     runs-on: ubuntu-latest
+    concurrency:
+      group: balance-progress-write
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - uses: actions/download-artifact@v4
         with: {pattern: 'balance-8000-*', path: balance-results}
+      - name: Update dashboard and start next batch
+        run: bash scripts/publish-balance-progress.sh
+        env: {CHECKPOINT: '9000', INPUT_DIR: balance-results, NEXT_CHECKPOINT: '10000'}
       - run: node scripts/balance-aggregate.mjs
         env: {OUT: balance-summary-9000.json}
       - uses: actions/upload-artifact@v4
@@ -191,12 +232,19 @@ jobs:
     name: Checkpoint 10000
     needs: batch_9000
     runs-on: ubuntu-latest
+    concurrency:
+      group: balance-progress-write
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - uses: actions/download-artifact@v4
         with: {pattern: 'balance-9000-*', path: balance-results}
+      - name: Update dashboard
+        run: bash scripts/publish-balance-progress.sh
+        env: {CHECKPOINT: '10000', INPUT_DIR: balance-results}
       - run: node scripts/balance-aggregate.mjs
         env: {OUT: balance-summary-10000.json}
       - uses: actions/upload-artifact@v4
