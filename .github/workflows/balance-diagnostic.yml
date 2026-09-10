@@ -10,15 +10,19 @@ on:
 
 jobs:
   diagnose:
+    strategy:
+      fail-fast: false
+      matrix:
+        offset: [2700,2710,2720,2730,2740,2750,2760,2770,2780,2790]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Reproduce failing shard
+      - name: Reproduce ten-seed slice
         env:
-          OFFSET: '1000'
-          SHARD: '17'
-          COUNT: '100'
+          OFFSET: ${{ matrix.offset }}
+          SHARD: '0'
+          COUNT: '10'
         run: node scripts/diagnose-balance-choice.mjs
