@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - feature/life-continuity-optimizations
+      - feature/balance-speed
+      - feature/balance-dashboard
     paths:
       - '.github/workflows/balance-0-to-5000-latest.yml'
       - 'dist/engine/event.js'
@@ -12,150 +14,237 @@ on:
       - 'dist/data/careers.js'
       - 'dist/data/continuity.js'
       - 'dist/state/player.js'
+      - 'scripts/balance-lib.mjs'
       - 'scripts/balance-shard.mjs'
       - 'scripts/balance-aggregate.mjs'
+      - 'scripts/diagnose-balance-choice.mjs'
+      - 'scripts/balance-progress*.mjs'
+      - 'scripts/publish-balance-progress.sh'
+      - 'tests/balance-speed.test.js'
+
+permissions:
+  contents: write
 
 jobs:
+  gate:
+    name: Balance gate
+    runs-on: ubuntu-latest
+    concurrency:
+      group: balance-progress-write
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: npm test
+      - run: npm run build
+      - name: Mark 0-999 running
+        run: bash scripts/publish-balance-progress.sh
+        env: {CHECKPOINT: '1000', STATUS: 'running'}
+
   batch_0:
     name: 0-999 shard ${{ matrix.shard }}
+    needs: gate
     strategy:
       fail-fast: false
-      matrix: {shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]}
+      matrix: {shard: [0,1,2,3,4,5,6,7]}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
-      - run: node scripts/balance-shard.mjs
-        env: {OFFSET: '0', SHARD: '${{ matrix.shard }}', COUNT: '50', OUT: 'balance-${{ matrix.shard }}.json'}
+      - name: Fast scan 125 lifetimes
+        run: node scripts/balance-shard.mjs
+        env: {OFFSET: '0', SHARD: '${{ matrix.shard }}', COUNT: '125', OUT: 'balance-${{ matrix.shard }}.json'}
+      - name: Diagnose failed seeds
+        run: node scripts/diagnose-balance-choice.mjs
+        env: {INPUT: 'balance-${{ matrix.shard }}.json'}
       - uses: actions/upload-artifact@v4
+        if: always()
         with: {name: 'latest-balance-0-${{ matrix.shard }}', path: 'balance-${{ matrix.shard }}.json', retention-days: 14}
+
   checkpoint_1000:
     name: Checkpoint 1000 Latest
     needs: batch_0
     runs-on: ubuntu-latest
+    concurrency:
+      group: balance-progress-write
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - uses: actions/download-artifact@v4
         with: {pattern: 'latest-balance-0-*', path: balance-results}
+      - name: Update dashboard and start next batch
+        run: bash scripts/publish-balance-progress.sh
+        env: {CHECKPOINT: '1000', INPUT_DIR: balance-results, NEXT_CHECKPOINT: '2000'}
       - run: node scripts/balance-aggregate.mjs
         env: {OUT: balance-summary-1000.json}
       - uses: actions/upload-artifact@v4
         with: {name: latest-balance-checkpoint-1000, path: balance-summary-1000.json, retention-days: 30}
+
   batch_1000:
     name: 1000-1999 shard ${{ matrix.shard }}
     needs: checkpoint_1000
     strategy:
       fail-fast: false
-      matrix: {shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]}
+      matrix: {shard: [0,1,2,3,4,5,6,7]}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - run: node scripts/balance-shard.mjs
-        env: {OFFSET: '1000', SHARD: '${{ matrix.shard }}', COUNT: '50', OUT: 'balance-${{ matrix.shard }}.json'}
+        env: {OFFSET: '1000', SHARD: '${{ matrix.shard }}', COUNT: '125', OUT: 'balance-${{ matrix.shard }}.json'}
+      - run: node scripts/diagnose-balance-choice.mjs
+        env: {INPUT: 'balance-${{ matrix.shard }}.json'}
       - uses: actions/upload-artifact@v4
+        if: always()
         with: {name: 'latest-balance-1000-${{ matrix.shard }}', path: 'balance-${{ matrix.shard }}.json', retention-days: 14}
+
   checkpoint_2000:
     name: Checkpoint 2000 Latest
     needs: batch_1000
     runs-on: ubuntu-latest
+    concurrency:
+      group: balance-progress-write
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - uses: actions/download-artifact@v4
         with: {pattern: 'latest-balance-1000-*', path: balance-results}
+      - name: Update dashboard and start next batch
+        run: bash scripts/publish-balance-progress.sh
+        env: {CHECKPOINT: '2000', INPUT_DIR: balance-results, NEXT_CHECKPOINT: '3000'}
       - run: node scripts/balance-aggregate.mjs
         env: {OUT: balance-summary-2000.json}
       - uses: actions/upload-artifact@v4
         with: {name: latest-balance-checkpoint-2000, path: balance-summary-2000.json, retention-days: 30}
+
   batch_2000:
     name: 2000-2999 shard ${{ matrix.shard }}
     needs: checkpoint_2000
     strategy:
       fail-fast: false
-      matrix: {shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]}
+      matrix: {shard: [0,1,2,3,4,5,6,7]}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - run: node scripts/balance-shard.mjs
-        env: {OFFSET: '2000', SHARD: '${{ matrix.shard }}', COUNT: '50', OUT: 'balance-${{ matrix.shard }}.json'}
+        env: {OFFSET: '2000', SHARD: '${{ matrix.shard }}', COUNT: '125', OUT: 'balance-${{ matrix.shard }}.json'}
+      - run: node scripts/diagnose-balance-choice.mjs
+        env: {INPUT: 'balance-${{ matrix.shard }}.json'}
       - uses: actions/upload-artifact@v4
+        if: always()
         with: {name: 'latest-balance-2000-${{ matrix.shard }}', path: 'balance-${{ matrix.shard }}.json', retention-days: 14}
+
   checkpoint_3000:
     name: Checkpoint 3000 Latest
     needs: batch_2000
     runs-on: ubuntu-latest
+    concurrency:
+      group: balance-progress-write
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - uses: actions/download-artifact@v4
         with: {pattern: 'latest-balance-2000-*', path: balance-results}
+      - name: Update dashboard and start next batch
+        run: bash scripts/publish-balance-progress.sh
+        env: {CHECKPOINT: '3000', INPUT_DIR: balance-results, NEXT_CHECKPOINT: '4000'}
       - run: node scripts/balance-aggregate.mjs
         env: {OUT: balance-summary-3000.json}
       - uses: actions/upload-artifact@v4
         with: {name: latest-balance-checkpoint-3000, path: balance-summary-3000.json, retention-days: 30}
+
   batch_3000:
     name: 3000-3999 shard ${{ matrix.shard }}
     needs: checkpoint_3000
     strategy:
       fail-fast: false
-      matrix: {shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]}
+      matrix: {shard: [0,1,2,3,4,5,6,7]}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - run: node scripts/balance-shard.mjs
-        env: {OFFSET: '3000', SHARD: '${{ matrix.shard }}', COUNT: '50', OUT: 'balance-${{ matrix.shard }}.json'}
+        env: {OFFSET: '3000', SHARD: '${{ matrix.shard }}', COUNT: '125', OUT: 'balance-${{ matrix.shard }}.json'}
+      - run: node scripts/diagnose-balance-choice.mjs
+        env: {INPUT: 'balance-${{ matrix.shard }}.json'}
       - uses: actions/upload-artifact@v4
+        if: always()
         with: {name: 'latest-balance-3000-${{ matrix.shard }}', path: 'balance-${{ matrix.shard }}.json', retention-days: 14}
+
   checkpoint_4000:
     name: Checkpoint 4000 Latest
     needs: batch_3000
     runs-on: ubuntu-latest
+    concurrency:
+      group: balance-progress-write
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - uses: actions/download-artifact@v4
         with: {pattern: 'latest-balance-3000-*', path: balance-results}
+      - name: Update dashboard and start next batch
+        run: bash scripts/publish-balance-progress.sh
+        env: {CHECKPOINT: '4000', INPUT_DIR: balance-results, NEXT_CHECKPOINT: '5000'}
       - run: node scripts/balance-aggregate.mjs
         env: {OUT: balance-summary-4000.json}
       - uses: actions/upload-artifact@v4
         with: {name: latest-balance-checkpoint-4000, path: balance-summary-4000.json, retention-days: 30}
+
   batch_4000:
     name: 4000-4999 shard ${{ matrix.shard }}
     needs: checkpoint_4000
     strategy:
       fail-fast: false
-      matrix: {shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]}
+      matrix: {shard: [0,1,2,3,4,5,6,7]}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - run: node scripts/balance-shard.mjs
-        env: {OFFSET: '4000', SHARD: '${{ matrix.shard }}', COUNT: '50', OUT: 'balance-${{ matrix.shard }}.json'}
+        env: {OFFSET: '4000', SHARD: '${{ matrix.shard }}', COUNT: '125', OUT: 'balance-${{ matrix.shard }}.json'}
+      - run: node scripts/diagnose-balance-choice.mjs
+        env: {INPUT: 'balance-${{ matrix.shard }}.json'}
       - uses: actions/upload-artifact@v4
+        if: always()
         with: {name: 'latest-balance-4000-${{ matrix.shard }}', path: 'balance-${{ matrix.shard }}.json', retention-days: 14}
+
   checkpoint_5000:
     name: Checkpoint 5000 Latest
     needs: batch_4000
     runs-on: ubuntu-latest
+    concurrency:
+      group: balance-progress-write
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - uses: actions/download-artifact@v4
         with: {pattern: 'latest-balance-4000-*', path: balance-results}
+      - name: Update dashboard
+        run: bash scripts/publish-balance-progress.sh
+        env: {CHECKPOINT: '5000', INPUT_DIR: balance-results}
       - run: node scripts/balance-aggregate.mjs
         env: {OUT: balance-summary-5000.json}
       - uses: actions/upload-artifact@v4

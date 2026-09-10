@@ -1,0 +1,175 @@
+{
+  "version": 1,
+  "targetSeeds": 10000,
+  "batchSize": 1000,
+  "completedSeeds": 10000,
+  "scannedSeeds": 10000,
+  "progressRatio": 1,
+  "overallStatus": "completed",
+  "activeCheckpoint": 10000,
+  "totalFailed": 0,
+  "elapsedMs": 57174750,
+  "throughput": 0.17490238260770707,
+  "updatedAt": "2026-09-10T10:05:27.527Z",
+  "warnings": [
+    "同类事件最长连续 13 年",
+    "同类事件最长连续 16 年",
+    "同类事件最长连续 20 年",
+    "同类事件最长连续 14 年"
+  ],
+  "recentFailures": [],
+  "checkpoints": [
+    {
+      "checkpoint": 1000,
+      "start": 0,
+      "end": 999,
+      "status": "passed",
+      "scanned": 1000,
+      "passed": 1000,
+      "failed": 0,
+      "elapsedMs": 5312419,
+      "throughput": 0.1882381641960094,
+      "warnings": [],
+      "failedSeeds": [],
+      "updatedAt": "2026-09-10T09:06:31.297Z"
+    },
+    {
+      "checkpoint": 2000,
+      "start": 1000,
+      "end": 1999,
+      "status": "passed",
+      "scanned": 1000,
+      "passed": 1000,
+      "failed": 0,
+      "elapsedMs": 6004301,
+      "throughput": 0.1665472800247689,
+      "warnings": [],
+      "failedSeeds": [],
+      "updatedAt": "2026-09-10T09:20:17.584Z"
+    },
+    {
+      "checkpoint": 3000,
+      "start": 2000,
+      "end": 2999,
+      "status": "passed",
+      "scanned": 1000,
+      "passed": 1000,
+      "failed": 0,
+      "elapsedMs": 6085892,
+      "throughput": 0.1643144505357637,
+      "warnings": [],
+      "failedSeeds": [],
+      "updatedAt": "2026-09-10T09:37:41.862Z"
+    },
+    {
+      "checkpoint": 4000,
+      "start": 3000,
+      "end": 3999,
+      "status": "passed",
+      "scanned": 1000,
+      "passed": 1000,
+      "failed": 0,
+      "elapsedMs": 5071576,
+      "throughput": 0.19717736656218895,
+      "warnings": [
+        "同类事件最长连续 13 年"
+      ],
+      "failedSeeds": [],
+      "updatedAt": "2026-09-10T09:51:42.102Z"
+    },
+    {
+      "checkpoint": 5000,
+      "start": 4000,
+      "end": 4999,
+      "status": "passed",
+      "scanned": 1000,
+      "passed": 1000,
+      "failed": 0,
+      "elapsedMs": 5762757,
+      "throughput": 0.1735280526317525,
+      "warnings": [
+        "同类事件最长连续 16 年"
+      ],
+      "failedSeeds": [],
+      "updatedAt": "2026-09-10T10:05:27.527Z"
+    },
+    {
+      "checkpoint": 6000,
+      "start": 5000,
+      "end": 5999,
+      "status": "passed",
+      "scanned": 1000,
+      "passed": 1000,
+      "failed": 0,
+      "elapsedMs": 5639007,
+      "throughput": 0.17733618702725498,
+      "warnings": [
+        "同类事件最长连续 20 年"
+      ],
+      "failedSeeds": [],
+      "updatedAt": "2026-09-10T08:59:48.867Z"
+    },
+    {
+      "checkpoint": 7000,
+      "start": 6000,
+      "end": 6999,
+      "status": "passed",
+      "scanned": 1000,
+      "passed": 1000,
+      "failed": 0,
+      "elapsedMs": 5668747,
+      "throughput": 0.17640582654332607,
+      "warnings": [
+        "同类事件最长连续 13 年"
+      ],
+      "failedSeeds": [],
+      "updatedAt": "2026-09-10T09:13:55.714Z"
+    },
+    {
+      "checkpoint": 8000,
+      "start": 7000,
+      "end": 7999,
+      "status": "passed",
+      "scanned": 1000,
+      "passed": 1000,
+      "failed": 0,
+      "elapsedMs": 5832468,
+      "throughput": 0.17145400540560188,
+      "warnings": [
+        "同类事件最长连续 14 年"
+      ],
+      "failedSeeds": [],
+      "updatedAt": "2026-09-10T09:32:50.607Z"
+    },
+    {
+      "checkpoint": 9000,
+      "start": 8000,
+      "end": 8999,
+      "status": "passed",
+      "scanned": 1000,
+      "passed": 1000,
+      "failed": 0,
+      "elapsedMs": 5945061,
+      "throughput": 0.1682068527135382,
+      "warnings": [
+        "同类事件最长连续 14 年"
+      ],
+      "failedSeeds": [],
+      "updatedAt": "2026-09-10T09:46:42.901Z"
+    },
+    {
+      "checkpoint": 10000,
+      "start": 9000,
+      "end": 9999,
+      "status": "passed",
+      "scanned": 1000,
+      "passed": 1000,
+      "failed": 0,
+      "elapsedMs": 5852522,
+      "throughput": 0.17086650848984422,
+      "warnings": [],
+      "failedSeeds": [],
+      "updatedAt": "2026-09-10T10:00:31.813Z"
+    }
+  ]
+}
