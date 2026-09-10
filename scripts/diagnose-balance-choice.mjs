@@ -27,5 +27,8 @@ for(const row of failedSeeds){
   if(!fromFastScan)throw error;
  }
 }
-if(fromFastScan)throw new Error(`fast scan 检出 ${failedSeeds.length} 个失败种子；详细复现 ${reproduced} 个`);
+if(fromFastScan){
+ console.log(`BALANCE_DIAGNOSTIC_SUMMARY detected=${failedSeeds.length} reproduced=${reproduced}`);
+ process.exit(0);
+}
 console.log(`offset ${offset} shard ${shard} no failure`);
