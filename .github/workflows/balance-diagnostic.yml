@@ -10,10 +10,6 @@ on:
 
 jobs:
   diagnose:
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [2,11,17]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,6 +18,7 @@ jobs:
           node-version: '22'
       - name: Reproduce failing shard
         env:
-          SHARD: ${{ matrix.shard }}
-          COUNT: '50'
+          OFFSET: '1000'
+          SHARD: '17'
+          COUNT: '100'
         run: node scripts/diagnose-balance-choice.mjs
