@@ -5,6 +5,7 @@ on:
     branches:
       - feature/life-continuity
       - feature/life-continuity-optimizations
+      - feature/balance-speed
 
 jobs:
   test:
