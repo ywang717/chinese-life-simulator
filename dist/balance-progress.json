@@ -3,18 +3,26 @@
   "targetSeeds": 100000,
   "batchSize": 1000,
   "completedSeeds": 4000,
-  "scannedSeeds": 4000,
+  "scannedSeeds": 5000,
   "progressRatio": 0.04,
-  "overallStatus": "running",
+  "overallStatus": "blocked",
   "activeCheckpoint": 5000,
-  "totalFailed": 0,
-  "elapsedMs": 69604890,
-  "throughput": 0.05746722679972628,
-  "updatedAt": "2026-09-11T20:56:33.832Z",
+  "totalFailed": 1,
+  "elapsedMs": 87165943,
+  "throughput": 0.057361852897065545,
+  "updatedAt": "2026-09-11T21:33:48.794Z",
   "warnings": [
-    "同类事件最长连续 13 年"
+    "同类事件最长连续 13 年",
+    "同类事件最长连续 16 年"
   ],
-  "recentFailures": [],
+  "recentFailures": [
+    {
+      "index": 4864,
+      "seed": "平衡-4864-zhengzhou",
+      "city": "zhengzhou",
+      "error": "尚不满足这份职业的入职条件"
+    }
+  ],
   "checkpoints": [
     {
       "checkpoint": 1000,
@@ -78,15 +86,24 @@
       "checkpoint": 5000,
       "start": 4000,
       "end": 4999,
-      "status": "running",
-      "scanned": 0,
-      "passed": 0,
-      "failed": 0,
-      "elapsedMs": 0,
-      "throughput": 0,
-      "warnings": [],
-      "failedSeeds": [],
-      "updatedAt": "2026-09-11T20:56:33.832Z"
+      "status": "blocked",
+      "scanned": 1000,
+      "passed": 999,
+      "failed": 1,
+      "elapsedMs": 17561053,
+      "throughput": 0.05694419349454728,
+      "warnings": [
+        "同类事件最长连续 16 年"
+      ],
+      "failedSeeds": [
+        {
+          "index": 4864,
+          "seed": "平衡-4864-zhengzhou",
+          "city": "zhengzhou",
+          "error": "尚不满足这份职业的入职条件"
+        }
+      ],
+      "updatedAt": "2026-09-11T21:33:48.794Z"
     },
     {
       "checkpoint": 6000,
