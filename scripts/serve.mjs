@@ -1,0 +1,5 @@
+import http from 'node:http';import fs from 'node:fs';import path from 'node:path';
+const args=process.argv.slice(2);const portArg=args.indexOf('--port');
+const root=path.resolve('dist'),port=Number(portArg>=0?args[portArg+1]:process.env.PORT||3000);
+if(!Number.isInteger(port)||port<1||port>65535)throw Error('端口设置无效');
+http.createServer((req,res)=>{let p;try{p=decodeURIComponent(new URL(req.url,'http://localhost').pathname);}catch{res.writeHead(400);return res.end('请求地址无效');}const file=path.resolve(root,'.'+(p==='/'?'/index.html':p));if(!file.startsWith(root+path.sep)){res.writeHead(403);return res.end('无法访问');}fs.readFile(file,(err,data)=>{if(err){res.writeHead(404,{'Content-Type':'text/plain;charset=utf-8'});return res.end('页面不存在');}res.writeHead(200,{'Content-Type':({'.html':'text/html','.js':'text/javascript','.css':'text/css'}[path.extname(file)]??'application/octet-stream')+'; charset=utf-8','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});res.end(data);});}).listen(port,()=>console.log(`人生模拟器已启动，端口 ${port}`));
