@@ -6,7 +6,7 @@
 | --- | --- |
 | 全中文、手机优先、纯文字 | `dist/app.js`、`dist/style.css`、`dist/data/catalog.js` |
 | 状态、年度、效果、长期记忆 | `dist/state/player.js`、`dist/engine/` |
-| 13 城市、21 职业、父母、爱好与天赋 | `dist/data/cities.js`、`dist/data/careers.js`、`dist/state/player.js` |
+| 200 城市、21 职业、父母、爱好与天赋 | `dist/data/cities.js`、`dist/data/careers.js`、`dist/state/player.js` |
 | 教育、社团、资格、人物关系与职业机会 | `dist/data/events.js`、`dist/engine/event.js` |
 | 硬条件、软概率、冷却、类别抑制、预约 | `dist/engine/event.js`、`dist/engine/probability.js` |
 | 迁居、成本、城市履历、原房产保留 | `dist/engine/effect.js`、`dist/engine/finance.js` |
