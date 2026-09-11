@@ -1,0 +1,163 @@
+name: Balance 0 to 100000
+
+on:
+  push:
+    branches:
+      - feature/balance-dashboard
+      - feature/balance-100k
+    paths:
+      - '.github/workflows/balance-0-to-100000.yml'
+      - 'scripts/balance-segment.mjs'
+      - 'scripts/balance-progress*.mjs'
+      - 'scripts/publish-balance-progress.sh'
+      - 'scripts/balance-shard.mjs'
+      - 'scripts/diagnose-balance-choice.mjs'
+      - 'scripts/balance-lib.mjs'
+      - 'dist/engine/**'
+      - 'dist/data/**'
+      - 'dist/state/player.js'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: balance-100k-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  segment_0:
+    name: Seeds 0-9999
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - run: npm run build
+      - name: Scan 0-9999 with live checkpoints
+        run: node scripts/balance-segment.mjs
+        env:
+          START: '0'
+          COUNT: '10000'
+
+  segment_10000:
+    name: Seeds 10000-19999
+    needs: segment_0
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: '${{ github.ref_name }}', fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-segment.mjs
+        env: {START: '10000', COUNT: '10000'}
+
+  segment_20000:
+    name: Seeds 20000-29999
+    needs: segment_10000
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: '${{ github.ref_name }}', fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-segment.mjs
+        env: {START: '20000', COUNT: '10000'}
+
+  segment_30000:
+    name: Seeds 30000-39999
+    needs: segment_20000
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: '${{ github.ref_name }}', fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-segment.mjs
+        env: {START: '30000', COUNT: '10000'}
+
+  segment_40000:
+    name: Seeds 40000-49999
+    needs: segment_30000
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: '${{ github.ref_name }}', fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-segment.mjs
+        env: {START: '40000', COUNT: '10000'}
+
+  segment_50000:
+    name: Seeds 50000-59999
+    needs: segment_40000
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: '${{ github.ref_name }}', fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-segment.mjs
+        env: {START: '50000', COUNT: '10000'}
+
+  segment_60000:
+    name: Seeds 60000-69999
+    needs: segment_50000
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: '${{ github.ref_name }}', fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-segment.mjs
+        env: {START: '60000', COUNT: '10000'}
+
+  segment_70000:
+    name: Seeds 70000-79999
+    needs: segment_60000
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: '${{ github.ref_name }}', fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-segment.mjs
+        env: {START: '70000', COUNT: '10000'}
+
+  segment_80000:
+    name: Seeds 80000-89999
+    needs: segment_70000
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: '${{ github.ref_name }}', fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-segment.mjs
+        env: {START: '80000', COUNT: '10000'}
+
+  segment_90000:
+    name: Seeds 90000-99999
+    needs: segment_80000
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: '${{ github.ref_name }}', fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/balance-segment.mjs
+        env: {START: '90000', COUNT: '10000'}
