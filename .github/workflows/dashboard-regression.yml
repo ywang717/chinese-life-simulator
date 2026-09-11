@@ -9,13 +9,13 @@ on:
       - '.github/workflows/dashboard-regression.yml'
       - 'tests/balance-dashboard.test.js'
       - 'scripts/balance-progress*.mjs'
+      - 'scripts/balance-segment.mjs'
       - 'scripts/diagnose-balance-choice.mjs'
       - 'dist/balance.html'
       - 'dist/balance-dashboard.js'
-      - 'dist/balance-progress.json'
       - '.github/workflows/balance-0-to-5000-latest.yml'
       - '.github/workflows/balance-5000-to-10000.yml'
-      - '.github/workflows/balance-10000-to-100000.yml'
+      - '.github/workflows/balance-0-to-100000.yml'
 
 jobs:
   test:
