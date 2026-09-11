@@ -48,15 +48,16 @@ test('看板脚本只读取同源 progress JSON 并支持自动刷新',()=>{
   assert.doesNotMatch(js,/api\.github\.com|Authorization|token/i);
 });
 
-test('十万种子工作流接入进度脚本并按 10000 一段续跑',()=>{
-  const path='.github/workflows/balance-10000-to-100000.yml';
-  assert.equal(exists(path),true,'缺少 10000→100000 工作流');
+test('十万种子工作流从零开始并按 10000 一段续跑',()=>{
+  const path='.github/workflows/balance-0-to-100000.yml';
+  assert.equal(exists(path),true,'缺少 0→100000 工作流');
+  assert.equal(exists('scripts/balance-segment.mjs'),true,'缺少 10000 seeds 分段执行器');
   const yml=read(path);
   assert.match(yml,/feature\/balance-100k/);
-  assert.match(yml,/scripts\/balance-progress\.mjs/);
+  assert.match(yml,/scripts\/balance-segment\.mjs/);
   assert.match(yml,/contents:\s*write/);
-  assert.match(yml,/10000/);
-  assert.match(yml,/100000/);
+  assert.match(yml,/START:\s*'0'/);
+  assert.match(yml,/START:\s*'90000'/);
 });
 
 test('fast scan 诊断不能提前终止 shard，失败应交给 checkpoint 记录并阻断',()=>{
