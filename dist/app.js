@@ -11,7 +11,7 @@ import {labels,hobbyNames,educationNames,money,number} from './data/catalog.js';
 const root=document.querySelector('#app');const debug=new URLSearchParams(location.search).get('debug')==='1';
 let save=emptySave(),view='home',tab='year',busy=false,error='',saved=true,ready=false,archive=null,prefs=settings(),autoAdvanceTimer=null,yearFeedScrollTimer=null,yearTransitionFromAge=null;
 const AUTO_ADVANCE_DELAY=1200;
-const esc=v=>String(v??'暂无').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+const esc=v=>String(v??'暂无').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button=(text,action,cls='',disabled=false,extra='')=>`<button class="${cls}" data-action="${action}" ${disabled||busy?'disabled':''} ${extra}>${esc(text)}</button>`;
 const row=(k,v)=>`<div class="row"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`;
 const card=(title,content)=>`<section class="page-card"><h2 class="section-title">${esc(title)}</h2>${content}</section>`;
