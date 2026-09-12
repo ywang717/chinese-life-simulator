@@ -8,11 +8,13 @@ on:
     paths:
       - '.github/workflows/dashboard-regression.yml'
       - 'tests/balance-dashboard.test.js'
+      - 'tests/edge-cases.test.js'
       - 'scripts/balance-progress*.mjs'
       - 'scripts/balance-segment.mjs'
       - 'scripts/diagnose-balance-choice.mjs'
       - 'dist/balance.html'
       - 'dist/balance-dashboard.js'
+      - 'dist/engine/event.js'
       - '.github/workflows/balance-0-to-5000-latest.yml'
       - '.github/workflows/balance-5000-to-10000.yml'
       - '.github/workflows/balance-0-to-100000.yml'
@@ -24,4 +26,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
-      - run: node --test tests/balance-dashboard.test.js
+      - run: node --test tests/balance-dashboard.test.js tests/edge-cases.test.js
