@@ -10,7 +10,7 @@
   "totalFailed": 0,
   "elapsedMs": 160911289,
   "throughput": 0.04971683496985722,
-  "updatedAt": "2026-09-12T22:13:38.527Z",
+  "updatedAt": "2026-09-12T22:13:40.688Z",
   "warnings": [
     "同类事件最长连续 13 年",
     "同类事件最长连续 16 年",
@@ -153,7 +153,7 @@
       "throughput": 0,
       "warnings": [],
       "failedSeeds": [],
-      "updatedAt": "2026-09-12T22:13:38.527Z"
+      "updatedAt": "2026-09-12T22:13:40.688Z"
     },
     {
       "checkpoint": 10000,
