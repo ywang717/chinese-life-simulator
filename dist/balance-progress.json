@@ -2,15 +2,15 @@
   "version": 1,
   "targetSeeds": 100000,
   "batchSize": 1000,
-  "completedSeeds": 14000,
-  "scannedSeeds": 14000,
-  "progressRatio": 0.14,
+  "completedSeeds": 15000,
+  "scannedSeeds": 15000,
+  "progressRatio": 0.15,
   "overallStatus": "running",
-  "activeCheckpoint": 15000,
+  "activeCheckpoint": 16000,
   "totalFailed": 0,
-  "elapsedMs": 283914380,
-  "throughput": 0.04931064076430366,
-  "updatedAt": "2026-09-13T02:33:44.042Z",
+  "elapsedMs": 303797294,
+  "throughput": 0.04937502833715168,
+  "updatedAt": "2026-09-13T03:15:30.729Z",
   "warnings": [
     "同类事件最长连续 13 年",
     "同类事件最长连续 16 年",
@@ -236,6 +236,22 @@
       "checkpoint": 15000,
       "start": 14000,
       "end": 14999,
+      "status": "passed",
+      "scanned": 1000,
+      "passed": 1000,
+      "failed": 0,
+      "elapsedMs": 19882914,
+      "throughput": 0.05029443873267268,
+      "warnings": [
+        "同类事件最长连续 13 年"
+      ],
+      "failedSeeds": [],
+      "updatedAt": "2026-09-13T03:15:30.729Z"
+    },
+    {
+      "checkpoint": 16000,
+      "start": 15000,
+      "end": 15999,
       "status": "running",
       "scanned": 0,
       "passed": 0,
@@ -244,21 +260,7 @@
       "throughput": 0,
       "warnings": [],
       "failedSeeds": [],
-      "updatedAt": "2026-09-13T02:33:44.042Z"
-    },
-    {
-      "checkpoint": 16000,
-      "start": 15000,
-      "end": 15999,
-      "status": "waiting",
-      "scanned": 0,
-      "passed": 0,
-      "failed": 0,
-      "elapsedMs": 0,
-      "throughput": 0,
-      "warnings": [],
-      "failedSeeds": [],
-      "updatedAt": null
+      "updatedAt": "2026-09-13T03:15:30.729Z"
     },
     {
       "checkpoint": 17000,
